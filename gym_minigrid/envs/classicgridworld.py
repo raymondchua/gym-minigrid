@@ -23,7 +23,7 @@ class ClassicGridWorldEnv(MiniGridEnv):
 
         super().__init__(
             grid_size=size,
-            max_steps=4*size*size,
+            max_steps=50,
             agent_view_size=agent_view,
         )
 
@@ -169,6 +169,29 @@ class ClassicGridWorldEnv(MiniGridEnv):
 
         return img
 
+    def gen_obs(self):
+        """
+        Generate the agent's view which is x-y coordinates and head direction
+        """
+
+        # grid, vis_mask = self.gen_obs_grid()
+
+        # # Encode the partially observable view into a numpy array
+        # image = grid.encode(vis_mask)
+
+        # assert hasattr(self, 'mission'), "environments must define a textual mission string"
+
+        # # Observations are dictionaries containing:
+        # # - an image (partially observable view of the environment)
+        # # - the agent's direction/orientation (acting as a compass)
+        # # - a textual mission string (instructions for the agent)
+        obs = {
+            'x': self.agent_pos[0],
+            'y': self.agent_pos[1],
+        }
+
+        return obs
+
     
 
 
@@ -177,17 +200,34 @@ class ClassicGridWorldS7Env(ClassicGridWorldEnv):
     def __init__(self):
         super().__init__(size=7)
 
+class ClassicGridWorldS7EnvGoalBL(ClassicGridWorldEnv):
+    def __init__(self):
+        super().__init__(size=7, goal_pos=(1,5))
+
 class ClassicGridWorldS9Env(ClassicGridWorldEnv):
     def __init__(self):
         super().__init__(size=9)
+
+class ClassicGridWorldS9EnvGoalBL(ClassicGridWorldEnv):
+    def __init__(self):
+        super().__init__(size=9, goal_pos=(1,7))
 
 class ClassicGridWorldS11Env(ClassicGridWorldEnv):
     def __init__(self):
         super().__init__(size=11)
 
+class ClassicGridWorldS11EnvGoalBL(ClassicGridWorldEnv):
+    def __init__(self):
+        super().__init__(size=11, goal_pos=(1,9))
+
 register(
     id='MiniGrid-ClassicGridWorldS7-v0',
     entry_point='gym_minigrid.envs:ClassicGridWorldS7Env'
+)
+
+register(
+    id='MiniGrid-ClassicGridWorldS7BLG-v0',
+    entry_point='gym_minigrid.envs:ClassicGridWorldS7EnvGoalBL'
 )
 
 register(
@@ -196,9 +236,20 @@ register(
 )
 
 register(
+    id='MiniGrid-ClassicGridWorldS9BLG-v0',
+    entry_point='gym_minigrid.envs:ClassicGridWorldS9EnvGoalBL'
+)
+
+register(
     id='MiniGrid-ClassicGridWorldS11-v0',
     entry_point='gym_minigrid.envs:ClassicGridWorldS11Env'
 )
+
+register(
+    id='MiniGrid-ClassicGridWorldS11BLG-v0',
+    entry_point='gym_minigrid.envs:ClassicGridWorldS11EnvGoalBL'
+)
+
 
 
 

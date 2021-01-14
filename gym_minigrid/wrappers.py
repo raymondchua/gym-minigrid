@@ -110,6 +110,8 @@ class ImgObsWrapper(gym.core.ObservationWrapper):
     def observation(self, obs):
         return obs['image']
 
+
+
 class OneHotPartialObsWrapper(gym.core.ObservationWrapper):
     """
     Wrapper to get a one-hot encoding of a partially observable
