@@ -25,8 +25,8 @@ head_dir = 4
 grid_size = 7
 eps_final = 0.3
 max_steps = 1000
-num_episodes = 700
-num_epochs = 10
+num_episodes = 1200
+num_epochs = 8
 discount = 0.9
 lr = 0.1
 
@@ -221,7 +221,7 @@ Q_u2 = jnp.zeros((grid_size*grid_size, len(env.actions)))
 Q_u3 = jnp.zeros((grid_size*grid_size, len(env.actions)))
 
 
-g_1_2 = 0.1 #original was 0.00001, second version was 0.001, third version was 0.001
+g_1_2 = 0.01 #original was 0.00001, second version was 0.001, third version was 0.001
 g_2_3 = g_1_2 / 2
 
 C_1 = 1
@@ -280,7 +280,7 @@ for epoch in range(num_epochs):
 			Q_u2 = jax.ops.index_update(Q_u2, (state, action), Q_update_u2)
 
 			#update Q_u3
-			Q_update_u3 = Q_u3[state,action] + ((lr/C_3) * (g_2_3 * (Q_u3[state, action] - Q_u2[state,action])))
+			Q_update_u3 = Q_u3[state,action] + ((lr/C_3) * (g_2_3 * (Q_u2[state,action] - Q_u3[state, action])))
 			Q_u3 = jax.ops.index_update(Q_u3, (state, action), Q_update_u3)
 
 
@@ -295,10 +295,6 @@ for epoch in range(num_epochs):
 				Q_u3 = jnp.clip(Q_u3,  a_max=1.0)
 				break
 
-			#clip Q values of goal site to 1
-
-
-
 
 		#logging stats
 		duration = int(time.time() - start_time)
@@ -309,14 +305,14 @@ for epoch in range(num_epochs):
 		if moving_avg_returns >= 1.0 and steps_to_good_policy[epoch]==0.0:
 			steps_to_good_policy = jax.ops.index_update(steps_to_good_policy, (epoch), count)
 
-		if returnPerEpisode[epside_count] >= 1.0 and steps_to_first_reward[epoch]==0.0:
+		if returnPerEpisode[-1] >= 1.0 and steps_to_first_reward[epoch]==0.0:
 			steps_to_first_reward = jax.ops.index_update(steps_to_first_reward, (epoch), count)
 
 		header = ["epoch", "steps", "episode", "duration"]
 		data = [epoch, steps_done, epside_count, duration]
 
 		header += ["eps", "cur episode return", "returns", "avg returns", "steps first R", "steps good policy"]
-		data += [eps, returnPerEpisode[epside_count], totalReturn_val, moving_avg_returns, steps_to_first_reward[epoch], steps_to_good_policy[epoch]]
+		data += [eps, returnPerEpisode[-1], totalReturn_val, moving_avg_returns, steps_to_first_reward[epoch], steps_to_good_policy[epoch]]
 
 		txt_logger.info(
 				"Epoch {} | S {} | Episode {} | D {} | EPS {:.3f} | R {:.3f} | Total R {:.3f} | Avg R {:.3f} | Steps 1st R {}| Steps good P {} "
