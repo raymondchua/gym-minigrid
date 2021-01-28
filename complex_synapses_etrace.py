@@ -25,7 +25,7 @@ head_dir = 4
 grid_size = 10
 eps_final = 0.3
 max_steps = 1000
-num_episodes = 8000
+num_episodes = 20000
 num_epochs = 8
 discount = 0.9
 lr = 0.1
@@ -280,7 +280,7 @@ for epoch in range(num_epochs):
 
 			#update eligibility trace
 			etrace = jnp.multiply(etrace,discount * lam_factor)
-			etrace = jax.ops.index_update(etrace, (state, action), 1)
+			etrace = jax.ops.index_update(etrace, (state, action), etrace[state, action]+1)
 
 			#update Q_u1 using td error
 			td_error = compute_td_error(state, next_state, action, reward, Q_u1)
@@ -335,7 +335,7 @@ for epoch in range(num_epochs):
 		header += ["eps", "cur episode return", "returns", "avg returns", "steps first R", "steps good policy", "cum R"]
 		data += [eps, returnPerEpisode[-1], totalReturn_val, moving_avg_returns, steps_to_first_reward[epoch], steps_to_good_policy[epoch], cumulative_reward]
 
-		if epside_count % 200 == 0: 
+		if epside_count % 1000 == 0: 
 			txt_logger.info(
 					"Epoch {} | S {} | Episode {} | D {} | EPS {:.3f} | R {:.3f} | Total R {:.3f} | Avg R {:.3f} | Steps 1st R {}| Steps good P {} | Cum R {}"
 					.format(*data))
@@ -347,9 +347,9 @@ for epoch in range(num_epochs):
 		csv_file.flush()
 
 		if epside_count %10 == 0: 
-			filename_u1 = 'Q_u1_'+str(epside_count)+'.npy'
-			filename_u2 = 'Q_u2_'+str(epside_count)+'.npy'
-			filename_u3 = 'Q_u3_'+str(epside_count)+'.npy'
+			filename_u1 = 'Q_etrace_u1_'+str(epside_count)+'.npy'
+			filename_u2 = 'Q_etrace_u2_'+str(epside_count)+'.npy'
+			filename_u3 = 'Q_etrace_u3_'+str(epside_count)+'.npy'
 			jnp.save(filename_u1, Q_u1)
 			jnp.save(filename_u2, Q_u2)
 			jnp.save(filename_u3, Q_u3)

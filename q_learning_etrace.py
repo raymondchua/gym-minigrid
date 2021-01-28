@@ -276,7 +276,7 @@ for epoch in range(num_epochs):
 
 			#update eligibility trace
 			etrace = jnp.multiply(etrace,discount * lam_factor)
-			etrace = jax.ops.index_update(etrace, (state, action), 1)
+			etrace = jax.ops.index_update(etrace, (state, action), etrace[state,action]+1)
 
 			td_error = compute_td_error(state, next_state, action, reward, Q_values)
 			td_error_etrace = jnp.multiply(etrace, td_error)
