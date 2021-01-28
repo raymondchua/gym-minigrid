@@ -305,7 +305,9 @@ for epoch in range(num_epochs):
 
 		if moving_avg_returns >= 1.0 and steps_to_good_policy[epoch]==0.0:
 			steps_to_good_policy = jax.ops.index_update(steps_to_good_policy, (epoch), count)
-			good_policy_count += 1 
+		
+		elif moving_avg_returns >= 1.0 and steps_to_good_policy[epoch]>0:
+			good_policy_count += 1
 
 		if returnPerEpisode[-1] >= 1.0 and steps_to_first_reward[epoch]==0.0:
 			steps_to_first_reward = jax.ops.index_update(steps_to_first_reward, (epoch), count)
@@ -323,7 +325,7 @@ for epoch in range(num_epochs):
 		header += ["eps", "cur episode return", "returns", "avg returns", "steps first R", "steps good policy", "cum R"]
 		data += [eps, returnPerEpisode[-1], totalReturn_val, moving_avg_returns, steps_to_first_reward[epoch], steps_to_good_policy[epoch], cumulative_reward]
 
-		if epside_count % 1000 == 0: 
+		if epside_count % 200 == 0: 
 			txt_logger.info(
 					"Epoch {} | S {} | Episode {} | D {} | EPS {:.3f} | R {:.3f} | Total R {:.3f} | Avg R {:.3f} | Steps 1st R {}| Steps good P {} | Cum R {}"
 					.format(*data))
