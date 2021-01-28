@@ -34,7 +34,7 @@ head_dir = 4
 grid_size =  10
 eps_final = 0.3
 max_steps = 1000
-num_episodes = 8000
+num_episodes = 20000
 num_epochs = 8
 discount = 0.9
 lr = 0.1
@@ -323,7 +323,7 @@ for epoch in range(num_epochs):
 		header += ["eps", "cur episode return", "returns", "avg returns", "steps first R", "steps good policy", "cum R"]
 		data += [eps, returnPerEpisode[-1], totalReturn_val, moving_avg_returns, steps_to_first_reward[epoch], steps_to_good_policy[epoch], cumulative_reward]
 
-		if epside_count % 200 == 0: 
+		if epside_count % 1000 == 0: 
 			txt_logger.info(
 					"Epoch {} | S {} | Episode {} | D {} | EPS {:.3f} | R {:.3f} | Total R {:.3f} | Avg R {:.3f} | Steps 1st R {}| Steps good P {} | Cum R {}"
 					.format(*data))
