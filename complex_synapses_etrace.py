@@ -286,7 +286,7 @@ for epoch in range(num_epochs):
 			td_error = compute_td_error(state, next_state, action, reward, Q_u1)
 			td_error_etrace = jnp.multiply(etrace, td_error)
 			# Q_update_u1 = Q_u1[state,action] + ((lr/C_1) * (td_error + g_1_2 * (Q_u2[state, action] - Q_u1[state,action])))
-			Q_u1 = Q_u1 + ((lr/C_1) * (td_error + jnp.multiply((Q_u2 - Q_u1), g_1_2)))
+			Q_u1 = Q_u1 + ((lr/C_1) * (td_error_etrace + jnp.multiply((Q_u2 - Q_u1), g_1_2)))
 			# Q_u1 = jax.ops.index_update(Q_u1, (state, action), Q_update_u1)
 
 

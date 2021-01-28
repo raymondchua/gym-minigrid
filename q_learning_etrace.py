@@ -285,7 +285,7 @@ for epoch in range(num_epochs):
 			# Q_update = Q_values[state,action] + lr * compute_td_error(state, next_state, action, reward, Q_values)
 			# Q_values = jax.ops.index_update(Q_values, (state, action), Q_update)
 
-			Q_values = Q_values * (lr * td_error_etrace)
+			Q_values = Q_values + (lr * td_error_etrace)
 
 			state = next_state
 			count += 1
