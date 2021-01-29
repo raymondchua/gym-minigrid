@@ -304,8 +304,8 @@ for epoch in range(num_epochs):
 		header = ["epoch", "steps", "episode", "duration"]
 		data = [epoch, steps_done, epside_count, duration]
 
-		header += ["eps", "cur episode return", "returns", "avg returns", "steps first R", "steps good policy"]
-		data += [eps, returnPerEpisode[-1], totalReturn_val, moving_avg_returns, steps_to_first_reward[epoch], steps_to_good_policy[epoch]]
+		header += ["eps", "cur episode return", "returns", "avg returns", "steps first R", "steps good policy", "cum R"]
+		data += [eps, returnPerEpisode[-1], totalReturn_val, moving_avg_returns, steps_to_first_reward[epoch], steps_to_good_policy[epoch], cumulative_reward]
 
 		
 		if epside_count % 200 == 0: 
