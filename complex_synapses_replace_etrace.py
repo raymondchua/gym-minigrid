@@ -349,9 +349,9 @@ for epoch in range(num_epochs):
 		csv_file.flush()
 
 		if epside_count %10 == 0: 
-			filename_u1 = 'Q_etrace_u1_'+str(epside_count)+'.npy'
-			filename_u2 = 'Q_etrace_u2_'+str(epside_count)+'.npy'
-			filename_u3 = 'Q_etrace_u3_'+str(epside_count)+'.npy'
+			filename_u1 = 'Q_etraceReplace_u1_'+str(epside_count)+'.npy'
+			filename_u2 = 'Q_etraceReplace_u2_'+str(epside_count)+'.npy'
+			filename_u3 = 'Q_etraceReplace_u3_'+str(epside_count)+'.npy'
 			jnp.save(filename_u1, Q_u1)
 			jnp.save(filename_u2, Q_u2)
 			jnp.save(filename_u3, Q_u3)

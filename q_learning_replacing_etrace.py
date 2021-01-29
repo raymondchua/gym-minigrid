@@ -336,7 +336,7 @@ for epoch in range(num_epochs):
 		csv_file.flush()
 
 		if epside_count %10 == 0: 
-			filename = 'Q_etrace_'+str(epside_count)+'.npy'
+			filename = 'Q_etraceReplace_'+str(epside_count)+'.npy'
 			jnp.save(filename, Q_values)
 			
 		epside_count += 1
