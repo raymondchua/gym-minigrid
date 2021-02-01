@@ -37,6 +37,8 @@ EPS_END = 0.05
 # EPS_DECAY = max_steps*num_episodes
 EPS_DECAY = max_steps
 
+MAX_GOOD_POLICY_COUNT = 100
+
 
 def eps_greedy_action(Q_values, state, subkey, num_actions):
 	global steps_done
@@ -147,8 +149,6 @@ def compute_td_error(state, next_state, action, reward, Q_values):
 	return td_error
 
 
-
-
 parser = argparse.ArgumentParser()
 parser.add_argument(
 	"--env",
@@ -257,7 +257,6 @@ for epoch in range(num_epochs):
 	count = 0
 
 	returnPerEpisode = [] 
-
 	good_policy_count = 0
 
 	for episode in range(num_episodes):
@@ -322,7 +321,7 @@ for epoch in range(num_epochs):
 		totalReturn_val = jnp.sum(jnp.array(returnPerEpisode))
 		moving_avg_returns = jnp.mean(jnp.array(returnPerEpisode[-10:]))
  
-		if moving_avg_returns >= 1.0 and steps_to_good_policy[epoch]==0.0:
+		if moving_avg_returns >= 1.0 and steps_to_good_policy[epoch]==0.0 and len(returnPerEpisode) >= MAX_GOOD_POLICY_COUNT: 
 			steps_to_good_policy = jax.ops.index_update(steps_to_good_policy, (epoch), count)
 		
 		elif moving_avg_returns >= 1.0 and steps_to_good_policy[epoch]>0:
@@ -358,7 +357,7 @@ for epoch in range(num_epochs):
 
 		epside_count += 1
 
-		if good_policy_count == 20:
+		if good_policy_count == MAX_GOOD_POLICY_COUNT:
 			break
 
 
