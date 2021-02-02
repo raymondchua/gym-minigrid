@@ -32,7 +32,6 @@ head_dir = 4
 # reward_scheme = 0
 
 grid_size =  10
-eps_final = 0.3
 max_steps = 1000
 num_episodes = 20000
 num_epochs = 12
@@ -47,7 +46,7 @@ EPS_DECAY = max_steps
 MAX_GOOD_POLICY_COUNT = 100
 
 
-def eps_greedy_action(Q_values, state, subkey, num_actions):
+def eps_greedy_action(Q_values, state, subkey, num_actions, eps_final):
 	global steps_done
 	rand_val = random.uniform(subkey)
 	# eps_threshold = EPS_END + (EPS_START - EPS_END) * math.exp(-1. * steps_done / EPS_DECAY)
@@ -183,6 +182,13 @@ parser.add_argument(
 	action='store_true'
 )
 
+parser.add_argument(
+	"--eps",
+	type=float,
+	help="epsilon-greedy value",
+	default=0.3
+)
+
 args = parser.parse_args()
 
 algo = 'Q-learning'
@@ -193,6 +199,8 @@ default_model_name = f"{args.env}_{algo}_seed{args.seed}_{date}"
 
 model_name = default_model_name
 model_dir = utils.get_model_dir(model_name)
+
+eps_final = args.eps
 
 # Load loggers and Tensorboard writer
 
@@ -267,7 +275,7 @@ for epoch in range(num_epochs):
 
 		for time_steps in range(max_steps):
 			key, subkey = random.split(key)
-			eps, action = eps_greedy_action(Q_values, state, subkey, len(env.actions))
+			eps, action = eps_greedy_action(Q_values, state, subkey, len(env.actions), eps_final)
 
 			next_state, reward, done, info = env.step(map_actions(action))
 			next_state = getStateID(next_state)
