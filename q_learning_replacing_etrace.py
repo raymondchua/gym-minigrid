@@ -249,8 +249,11 @@ epside_count = 0
 # env1 = gym.make('MiniGrid-ClassicGridWorldS9-v0')
 # env2 = gym.make('MiniGrid-ClassicGridWorldS9BLG-v0')
 
-env1 = gym.make('MiniGrid-ClassicGridWorldS12-v0')
-env2 = gym.make('MiniGrid-ClassicGridWorldS12BLG-v0')
+# env1 = gym.make('MiniGrid-ClassicGridWorldS12-v0')
+# env2 = gym.make('MiniGrid-ClassicGridWorldS12BLG-v0')
+
+env1 = gym.make('MiniGrid-ClassicGridWorldS12max20k-v0')
+env2 = gym.make('MiniGrid-ClassicGridWorldS12max20kBLG-v0')
 
 steps_to_first_reward = jnp.zeros((num_epochs))
 steps_to_good_policy = jnp.zeros((num_epochs))

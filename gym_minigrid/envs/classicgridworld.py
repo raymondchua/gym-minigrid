@@ -16,14 +16,14 @@ class ClassicGridWorldEnv(MiniGridEnv):
         up = 2
         down = 3
 
-    def __init__(self, size, agent_view=3, agent_pos=None, goal_pos=None):
+    def __init__(self, size, max_steps=200, agent_view=3, agent_pos=None, goal_pos=None):
 
         self._agent_default_pos = agent_pos
         self._goal_default_pos = goal_pos
 
         super().__init__(
             grid_size=size,
-            max_steps=200,
+            max_steps=max_steps,
             agent_view_size=agent_view,
         )
 
@@ -228,6 +228,14 @@ class ClassicGridWorldS12EnvGoalBL(ClassicGridWorldEnv):
     def __init__(self):
         super().__init__(size=12, goal_pos=(1,10))
 
+class ClassicGridWorldS12max20kEnv(ClassicGridWorldEnv):
+    def __init__(self):
+        super().__init__(size=12, max_steps=20000)
+
+class ClassicGridWorldS12max20kEnvGoalBL(ClassicGridWorldEnv):
+    def __init__(self):
+        super().__init__(size=12, max_steps=20000, goal_pos=(1,10))
+
 register(
     id='MiniGrid-ClassicGridWorldS7-v0',
     entry_point='gym_minigrid.envs:ClassicGridWorldS7Env'
@@ -266,6 +274,16 @@ register(
 register(
     id='MiniGrid-ClassicGridWorldS12BLG-v0',
     entry_point='gym_minigrid.envs:ClassicGridWorldS12EnvGoalBL'
+)
+
+register(
+    id='MiniGrid-ClassicGridWorldS12max20k-v0',
+    entry_point='gym_minigrid.envs:ClassicGridWorldS12max20kEnv'
+)
+
+register(
+    id='MiniGrid-ClassicGridWorldS12max20kBLG-v0',
+    entry_point='gym_minigrid.envs:ClassicGridWorldS12max20kEnvGoalBL'
 )
 
 

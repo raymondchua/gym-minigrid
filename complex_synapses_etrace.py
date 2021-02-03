@@ -229,8 +229,11 @@ txt_logger.info("Environments loaded\n")
 # env1 = gym.make('MiniGrid-ClassicGridWorldS9-v0')
 # env2 = gym.make('MiniGrid-ClassicGridWorldS9BLG-v0')
 
-env1 = gym.make('MiniGrid-ClassicGridWorldS12-v0')
-env2 = gym.make('MiniGrid-ClassicGridWorldS12BLG-v0')
+# env1 = gym.make('MiniGrid-ClassicGridWorldS12-v0')
+# env2 = gym.make('MiniGrid-ClassicGridWorldS12BLG-v0')
+
+env1 = gym.make('MiniGrid-ClassicGridWorldS12max20k-v0')
+env2 = gym.make('MiniGrid-ClassicGridWorldS12max20kBLG-v0')
 
 status = {"num_steps": 0, "update": 0, "num_episodes":0}
 txt_logger.info("Training status loaded\n")
@@ -240,7 +243,7 @@ Q_u2 = jnp.zeros((grid_size*grid_size, len(env.actions)))
 Q_u3 = jnp.zeros((grid_size*grid_size, len(env.actions)))
 
 
-g_1_2 = 0.01 #original was 0.00001, second version was 0.001, third version was 0.001
+g_1_2 = 0.00001 #original was 0.00001, second version was 0.001, third version was 0.001
 g_2_3 = g_1_2 / 2
 
 C_1 = 1
