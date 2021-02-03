@@ -25,7 +25,6 @@ head_dir = 4
 grid_size = 10
 
 max_steps = 1000
-num_episodes = 20000
 num_epochs = 12
 discount = 0.9
 lr = 0.1
@@ -182,6 +181,13 @@ parser.add_argument(
 	default=0.3
 )
 
+parser.add_argument(
+	"--num_episodes",
+	type=int,
+	help="number of episodes per epoch",
+	default=20000
+)
+
 args = parser.parse_args()
 
 algo = 'Benna-Fusi_model_Q-learning'
@@ -194,6 +200,7 @@ model_name = default_model_name
 model_dir = utils.get_model_dir(model_name)
 
 eps_final = args.eps
+num_episodes = args.num_episodes
 
 # Load loggers and Tensorboard writer
 
