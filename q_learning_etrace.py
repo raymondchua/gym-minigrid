@@ -32,7 +32,7 @@ head_dir = 4
 # reward_scheme = 0
 
 grid_size =  10
-max_steps = 1000
+max_steps = 20000
 num_epochs = 12
 discount = 0.9
 lr = 0.1
