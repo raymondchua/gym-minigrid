@@ -188,6 +188,13 @@ parser.add_argument(
 	default=20000
 )
 
+parser.add_argument(
+	"--init_tube",
+	type=float,
+	help="value for g_1_2",
+	default=0.00001
+)
+
 args = parser.parse_args()
 
 algo = 'Benna-Fusi_model_Q-learning'
@@ -245,7 +252,7 @@ Q_u2 = jnp.zeros((grid_size*grid_size, len(env.actions)))
 Q_u3 = jnp.zeros((grid_size*grid_size, len(env.actions)))
 
 
-g_1_2 = 0.00001 #original was 0.00001, second version was 0.001, third version was 0.001
+g_1_2 = args.init_tube
 g_2_3 = g_1_2 / 2
 
 C_1 = 1

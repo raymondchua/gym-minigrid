@@ -229,6 +229,13 @@ parser.add_argument(
 	action='store_true'
 )
 
+parser.add_argument(
+	"--init_tube",
+	type=float,
+	help="value for g_1_2",
+	default=0.00001
+)
+
 args = parser.parse_args()
 
 algo = 'Benna-Fusi_model_Q-learning'
@@ -270,7 +277,7 @@ SR_u2 = jnp.zeros((grid_size*grid_size, grid_size*grid_size))
 SR_u3 = jnp.zeros((grid_size*grid_size, grid_size*grid_size))
 
 
-g_1_2 = 0.1 #original was 0.00001
+g_1_2 = args.init_tube #original was 0.00001
 g_2_3 = g_1_2 / 2
 
 C_1 = 1
@@ -328,7 +335,7 @@ for epoch in range(num_epochs):
 
 
 			#update SR_u3 using SR-td error
-			SR_update_u3 = SR_u3[state,:] + ((lr/C_3) * (g_2_3 * (SR_u3[state, :] - SR_u2[state,:])))
+			SR_update_u3 = SR_u3[state,:] + ((lr/C_3) * (g_2_3 * (SR_u2[state, :] - SR_u3[state,:])))
 			SR_u3 = jax.ops.index_update(SR_u3, jax.ops.index[state, :], SR_update_u3)
 
 
