@@ -5,11 +5,6 @@ import argparse
 import numpy as np
 import math
 
-# import gym
-# import gym_minigrid
-# from gym_minigrid.wrappers import *
-# from gym_minigrid.window import Window
-
 from gridworld_np import GridWorldEnv
 
 import time
@@ -17,26 +12,16 @@ import datetime
 import utils
 import sys
 
-# import jax
-# import jax.numpy as jnp
-# from jax import random
-
-
-
-head_dir = 4
-grid_size = 10
-
-max_steps = 20000
+grid_size =  10
 num_epochs = 12
 discount = 0.9
 lr = 0.1
 lam_factor = 0.9
-
+max_steps = 20000
 
 EPS_START = 1.0
 EPS_END = 0.05
-# EPS_DECAY = max_steps*num_episodes
-EPS_DECAY = max_steps
+MAX_GOOD_POLICY_COUNT = 100
 
 MIN_STEPS_TRESHOLD = 13
 
@@ -72,7 +57,7 @@ def key_handler(event):
 		step(env.actions.right)
 		return
 	if event.key == 'up':
-		step(env.actions.forward)
+		step(env.actions.up)
 		return
 
 	# Spacebar
@@ -109,23 +94,6 @@ def reset():
 	# redraw(obs)
 	return getStateID(obs)
 
-# def getStateID(obs):
-# 	state_space = jnp.zeros((grid_size, grid_size, head_dir))
-# 	hd = obs['head_direction']
-# 	x = obs['x']-1 	#env coordinates start from 1
-# 	y = obs['y']-1	#env coordinates start from 1
-# 	state_space = jax.ops.index_update(state_space, (x, y, hd), 1)
-# 	state_space_vec = state_space.reshape(-1)
-# 	return jnp.nonzero(state_space_vec)
-
-# def getStateID(obs):
-# 	state_space = jnp.zeros((grid_size, grid_size))
-# 	x = obs['x']-1 	#env coordinates start from 1
-# 	y = obs['y']-1	#env coordinates start from 1
-# 	state_space = jax.ops.index_update(state_space, (x, y), 1)
-# 	state_space_vec = state_space.reshape(-1)
-# 	return jnp.nonzero(state_space_vec)
-
 def getStateID(obs):
 	state_space = np.zeros((grid_size, grid_size))
 	x = obs['x']-1 	#env coordinates start from 1
@@ -151,11 +119,6 @@ def map_actions(action, env):
 	return actions[action]
 
 
-# def compute_td_error(state, next_state, action, reward, Q_values):
-# 	max_nextQ = jnp.max(jnp.squeeze(Q_values[next_state,:]), axis=0)
-# 	td_error = reward + (discount * max_nextQ) - Q_values[state,action]
-# 	return td_error
-
 def compute_td_error(state, next_state, action, reward, Q_values):
 	max_nextQ = np.max(np.squeeze(Q_values[next_state,:]), axis=0)
 	td_error = reward + (discount * max_nextQ) - Q_values[state,action]
@@ -164,7 +127,7 @@ def compute_td_error(state, next_state, action, reward, Q_values):
 def main():
 
 	parser = argparse.ArgumentParser()
-
+	
 	parser.add_argument(
 		"--seed",
 		type=int,
@@ -198,26 +161,19 @@ def main():
 		default=10000
 	)
 
-	parser.add_argument(
-		"--init_tube",
-		type=float,
-		help="value for g_1_2",
-		default=0.00001
-	)
+
 
 	args = parser.parse_args()
 
-	algo = 'Benna-Fusi_model_Q-learning'
+	algo = 'Q-learning'
 
 	#create train dir
 	date = datetime.datetime.now().strftime("%y-%m-%d-%H-%M-%S")
 	default_model_name = f"{algo}_seed{args.seed}_{date}"
 
+
 	model_name = default_model_name
 	model_dir = utils.get_model_dir(model_name)
-
-	eps_final = args.eps
-	num_episodes = args.num_episodes
 
 	# Load loggers and Tensorboard writer
 
@@ -232,28 +188,23 @@ def main():
 	# Set seed for all randomness sources
 	utils.seed(args.seed)
 
+	eps_final = args.eps
+	num_episodes = args.num_episodes
+
 	env = GridWorldEnv(size=grid_size, goal_pos=(0,0))
 	txt_logger.info("Environments loaded\n")
 
-	env1 = GridWorldEnv(size=grid_size, goal_pos=(0,0))
-	env2 = GridWorldEnv(size=grid_size, goal_pos=(grid_size,grid_size))
+	# if args.agent_view:
+	# 	env = RGBImgPartialObsWrapper(env)
+	# 	env = ImgObsWrapper(env)
+
+	# window = Window('gym_minigrid - ' + args.env)
+	# reset()
 
 	status = {"num_steps": 0, "update": 0, "num_episodes":0}
 	txt_logger.info("Training status loaded\n")
 
-	Q_u1 = np.zeros((grid_size*grid_size, len(env.actions)))
-	Q_u2 = np.zeros((grid_size*grid_size, len(env.actions)))
-	Q_u3 = np.zeros((grid_size*grid_size, len(env.actions)))
-
-
-	g_1_2 = args.init_tube
-	g_2_3 = g_1_2 / 2
-
-	C_1 = 1
-	C_2 = 2**1
-	C_3 = 2**2
-	  
-	# key = random.PRNGKey(args.seed)
+	Q_values = np.zeros((grid_size*grid_size, len(env.actions)))
 	rng =  np.random.default_rng(args.seed)
 
 	start_time = time.time()
@@ -263,10 +214,11 @@ def main():
 	steps_done = 0
 	epside_count = 0
 
+	env1 = GridWorldEnv(size=grid_size, goal_pos=(0,0))
+	env2 = GridWorldEnv(size=grid_size, goal_pos=(grid_size,grid_size))
+
 	steps_to_first_reward = np.zeros((num_epochs))
 	steps_to_good_policy = np.zeros((num_epochs))
-
-	cumulative_reward = 0
 
 	for epoch in range(num_epochs):
 
@@ -290,85 +242,73 @@ def main():
 			etrace = np.zeros((grid_size*grid_size, len(env.actions))) 
 
 			for time_steps in range(max_steps):
-
-				eps, action = eps_greedy_action(Q_u1, state, rng, len(env.actions), eps_final)
+				
+				eps, action = eps_greedy_action(Q_values, state, rng, len(env.actions), eps_final)
 				steps_done += 1
-				# next_state, reward, done, info = step(map_actions(action))
 
 				next_state, reward, done, info = env.step(map_actions(action, env))
 				next_state = getStateID(next_state)
+				# next_state, reward, done, info = step(map_actions(action))
 				
 				eps_reward += reward
 
 				#update eligibility trace
 				etrace = np.multiply(etrace,discount * lam_factor)
-				etrace[state, action] = 1 
+				etrace[state,action] = 1
 
-				#update Q_u1 using td error
-				td_error = compute_td_error(state, next_state, action, reward, Q_u1)
+				td_error = compute_td_error(state, next_state, action, reward, Q_values)
 				td_error_etrace = np.multiply(etrace, td_error)
-				Q_u1 = Q_u1 + ((lr/C_1) * (td_error_etrace + np.multiply((Q_u2 - Q_u1), g_1_2)))
 
+				# #update q_values using td error
+				# Q_update = Q_values[state,action] + lr * compute_td_error(state, next_state, action, reward, Q_values)
+				# Q_values = jax.ops.index_update(Q_values, (state, action), Q_update)
 
-				#update Q_u2
-				Q_u2 = Q_u2 + ((lr/C_2) * (g_1_2 * (Q_u1 - Q_u2) + \
-								g_2_3*(Q_u3 - Q_u2)))
-
-				#update Q_u3
-				Q_u3 = Q_u3 + ((lr/C_3) * (g_2_3 * (Q_u2 - Q_u3)))
+				Q_values = Q_values + (lr * td_error_etrace)
 
 				state = next_state
-
 				count += 1
 
 				if done:
 					returnPerEpisode.append(eps_reward)
-					Q_u1 = np.clip(Q_u1, a_min=0, a_max=1.0)
-					Q_u2 = np.clip(Q_u2, a_min=0, a_max=1.0)
-					Q_u3 = np.clip(Q_u3, a_min=0, a_max=1.0)
+					Q_values = np.clip(Q_values,  a_min=0.0, a_max=1.0)
 					stepsPerEpisode.append(time_steps)
 					break
-
-			cumulative_reward += returnPerEpisode[-1]
-
 
 			#logging stats
 			duration = int(time.time() - start_time)
 
 			totalReturn_val = np.sum(np.array(returnPerEpisode))
-			moving_avg_returns = np.mean(np.array(returnPerEpisode[-10:]))
+			moving_avg_returns = np.mean(np.array(returnPerEpisode[-100:]))
 			moving_avg_steps = np.mean(np.array(stepsPerEpisode[-20:]))
+
 
 			header = ["epoch", "steps", "episode", "duration"]
 			data = [epoch, steps_done, epside_count, duration]
+
 
 			header += ["eps", "cur episode return", "returns", "avg returns", "avg steps"]
 			data += [eps, returnPerEpisode[-1], totalReturn_val, moving_avg_returns, moving_avg_steps]
 
 			if epside_count % 200 == 0: 
 				txt_logger.info(
-						"Epoch {} | S {} | Episode {} | D {} | EPS {:.3f} | R {:.3f} | Total R {:.3f} | Avg R {:.3f} | Avg S {:.3f}"
+						"Epoch {} | S {} | Episode {} | D {} | EPS {:.3f} | R {:.3f} | Total R {:.3f} | Avg R {:.3f} | Avg S {}| "
 						.format(*data))
-
 
 			if epside_count == 0:
 				csv_logger.writerow(header)
 			csv_logger.writerow(data)
 			csv_file.flush()
 
-			if epside_count %5 == 0: 
-				filename_u1 = 'Q_etraceReplace_u1_'+str(epside_count)+'.npy'
-				filename_u2 = 'Q_etraceReplace_u2_'+str(epside_count)+'.npy'
-				filename_u3 = 'Q_etraceReplace_u3_'+str(epside_count)+'.npy'
-				np.save(filename_u1, Q_u1)
-				np.save(filename_u2, Q_u2)
-				np.save(filename_u3, Q_u3)
-
+			if epside_count % 10 == 0: 
+				filename = 'Q_etraceReplace_'+str(epside_count)+'.npy'
+				np.save(filename, Q_values)
+				
 			epside_count += 1
 
 			if moving_avg_steps <= MIN_STEPS_TRESHOLD and steps_to_good_policy[epoch] == 0:
 				steps_to_good_policy[epoch] = count
-		
+
+
 
 if __name__ == "__main__":
 	main()
