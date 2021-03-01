@@ -215,7 +215,7 @@ def main():
 	epside_count = 0
 
 	env1 = GridWorldEnv(size=grid_size, goal_pos=(0,0))
-	env2 = GridWorldEnv(size=grid_size, goal_pos=(grid_size,grid_size))
+	env2 = GridWorldEnv(size=grid_size, goal_pos=(grid_size-1,grid_size-1))
 
 	steps_to_first_reward = np.zeros((num_epochs))
 	steps_to_good_policy = np.zeros((num_epochs))

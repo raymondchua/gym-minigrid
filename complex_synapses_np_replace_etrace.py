@@ -236,7 +236,7 @@ def main():
 	txt_logger.info("Environments loaded\n")
 
 	env1 = GridWorldEnv(size=grid_size, goal_pos=(0,0))
-	env2 = GridWorldEnv(size=grid_size, goal_pos=(grid_size,grid_size))
+	env2 = GridWorldEnv(size=grid_size, goal_pos=(grid_size-1,grid_size-1))
 
 	status = {"num_steps": 0, "update": 0, "num_episodes":0}
 	txt_logger.info("Training status loaded\n")
