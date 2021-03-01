@@ -63,7 +63,7 @@ class GridWorldEnv(object):
 			if left_cell['x'] >= 0:
 				self.agent_pos = left_cell
 
-			if self.agent_pos == self.goal_pos:
+			if self.agent_pos['x'] == self.goal_pos[0] and self.agent_pos['y'] == self.goal_pos[1]:
 				done = True
 				reward = 1
 
@@ -76,7 +76,7 @@ class GridWorldEnv(object):
 			if right_cell['x'] < self.size:
 				self.agent_pos = right_cell
 
-			if self.agent_pos == self.goal_pos:
+			if self.agent_pos['x'] == self.goal_pos[0] and self.agent_pos['y'] == self.goal_pos[1]:
 				done = True
 				reward = 1
 
@@ -90,7 +90,7 @@ class GridWorldEnv(object):
 			if up_cell['y'] < self.size:
 				self.agent_pos = up_cell
 
-			if self.agent_pos == self.goal_pos:
+			if self.agent_pos['x'] == self.goal_pos[0] and self.agent_pos['y'] == self.goal_pos[1]:
 				done = True
 				reward = 1
 
@@ -103,7 +103,7 @@ class GridWorldEnv(object):
 			if down_cell['y'] >= 0:
 				self.agent_pos = down_cell
 
-			if self.agent_pos == self.goal_pos:
+			if self.agent_pos['x'] == self.goal_pos[0] and self.agent_pos['y'] == self.goal_pos[1]:
 				done = True
 				reward = 1
 
