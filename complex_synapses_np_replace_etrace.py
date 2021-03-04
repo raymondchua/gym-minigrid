@@ -23,7 +23,6 @@ import sys
 
 
 
-head_dir = 4
 grid_size = 10
 
 max_steps = 20000
@@ -101,30 +100,9 @@ def reset():
 		env.seed(args.seed)
 
 	obs = env.reset()
-
-	# if hasattr(env, 'mission'):
-	# 	print('Mission: %s' % env.mission)
-	# 	window.set_caption(env.mission)
-
-	# redraw(obs)
 	return getStateID(obs)
 
-# def getStateID(obs):
-# 	state_space = jnp.zeros((grid_size, grid_size, head_dir))
-# 	hd = obs['head_direction']
-# 	x = obs['x']-1 	#env coordinates start from 1
-# 	y = obs['y']-1	#env coordinates start from 1
-# 	state_space = jax.ops.index_update(state_space, (x, y, hd), 1)
-# 	state_space_vec = state_space.reshape(-1)
-# 	return jnp.nonzero(state_space_vec)
 
-# def getStateID(obs):
-# 	state_space = jnp.zeros((grid_size, grid_size))
-# 	x = obs['x']-1 	#env coordinates start from 1
-# 	y = obs['y']-1	#env coordinates start from 1
-# 	state_space = jax.ops.index_update(state_space, (x, y), 1)
-# 	state_space_vec = state_space.reshape(-1)
-# 	return jnp.nonzero(state_space_vec)
 
 def getStateID(obs):
 	state_space = np.zeros((grid_size, grid_size))
@@ -171,24 +149,12 @@ def main():
 		help="random seed to generate the environment with",
 		default=0
 	)
-	parser.add_argument(
-		"--tile_size",
-		type=int,
-		help="size at which to render tiles",
-		default=32
-	)
-	parser.add_argument(
-		'--agent_view',
-		default=False,
-		help="draw the agent sees (partially observable view)",
-		action='store_true'
-	)
 
 	parser.add_argument(
 		"--eps",
 		type=float,
 		help="epsilon-greedy value",
-		default=0.3
+		default=0.05
 	)
 
 	parser.add_argument(
