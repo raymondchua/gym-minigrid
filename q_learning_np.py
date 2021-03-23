@@ -16,7 +16,6 @@ grid_size =  10
 num_epochs = 12
 discount = 0.9
 
-lam_factor = 0.9
 max_steps = 20000
 
 EPS_START = 1.0
@@ -154,6 +153,13 @@ def main():
 		default=0.1
 	)
 
+	parser.add_argument(
+		"--lambda_factor",
+		type=float,
+		help="lambda factor for eligibility trace",
+		default=0.9
+	)
+
 
 
 	args = parser.parse_args()
@@ -184,16 +190,11 @@ def main():
 	eps_final = args.eps
 	num_episodes = args.num_episodes
 	lr = args.lr_Q
+	lam_factor = args.lambda_factor
+
 
 	env = GridWorldEnv(size=grid_size, goal_pos=(0,0))
 	txt_logger.info("Environments loaded\n")
-
-	# if args.agent_view:
-	# 	env = RGBImgPartialObsWrapper(env)
-	# 	env = ImgObsWrapper(env)
-
-	# window = Window('gym_minigrid - ' + args.env)
-	# reset()
 
 	status = {"num_steps": 0, "update": 0, "num_episodes":0}
 	txt_logger.info("Training status loaded\n")
@@ -294,9 +295,9 @@ def main():
 			csv_logger.writerow(data)
 			csv_file.flush()
 
-			if epside_count % 10 == 0: 
-				filename = 'Q_etraceReplace_'+str(epside_count)+'.npy'
-				np.save(filename, Q_values)
+			# if epside_count % 10 == 0: 
+			# 	filename = 'Q_etraceReplace_'+str(epside_count)+'.npy'
+			# 	np.save(filename, Q_values)
 				
 			epside_count += 1
 
