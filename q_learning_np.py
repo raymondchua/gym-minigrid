@@ -15,13 +15,12 @@ import sys
 grid_size =  10
 num_epochs = 12
 discount = 0.9
-lr = 0.1
+
 lam_factor = 0.9
 max_steps = 20000
 
 EPS_START = 1.0
 EPS_END = 0.05
-MAX_GOOD_POLICY_COUNT = 100
 
 MIN_STEPS_TRESHOLD = 13
 
@@ -96,8 +95,8 @@ def reset():
 
 def getStateID(obs):
 	state_space = np.zeros((grid_size, grid_size))
-	x = obs['x']-1 	#env coordinates start from 1
-	y = obs['y']-1	#env coordinates start from 1
+	x = obs['x'] 	
+	y = obs['y']
 	state_space[x,y] = 1
 	state_space_vec = state_space.reshape(-1)
 	return np.nonzero(state_space_vec)
@@ -135,23 +134,10 @@ def main():
 		default=0
 	)
 	parser.add_argument(
-		"--tile_size",
-		type=int,
-		help="size at which to render tiles",
-		default=32
-	)
-	parser.add_argument(
-		'--agent_view',
-		default=False,
-		help="draw the agent sees (partially observable view)",
-		action='store_true'
-	)
-
-	parser.add_argument(
 		"--eps",
 		type=float,
 		help="epsilon-greedy value",
-		default=0.3
+		default=0.05
 	)
 
 	parser.add_argument(
@@ -159,6 +145,13 @@ def main():
 		type=int,
 		help="number of episodes per epoch",
 		default=10000
+	)
+
+	parser.add_argument(
+		"--lr_Q",
+		type=float,
+		help="learning rate for Q values",
+		default=0.1
 	)
 
 
@@ -190,6 +183,7 @@ def main():
 
 	eps_final = args.eps
 	num_episodes = args.num_episodes
+	lr = args.lr_Q
 
 	env = GridWorldEnv(size=grid_size, goal_pos=(0,0))
 	txt_logger.info("Environments loaded\n")
@@ -230,6 +224,7 @@ def main():
 		count = 0
 
 		returnPerEpisode = [] 
+		stepsPerEpisode = []
 
 		good_policy_count = 0
 
@@ -305,7 +300,7 @@ def main():
 				
 			epside_count += 1
 
-			if moving_avg_steps <= MIN_STEPS_TRESHOLD and steps_to_good_policy[epoch] == 0:
+			if moving_avg_steps <= MIN_STEPS_TRESHOLD and steps_to_good_policy[epoch] == 0 and (len(stepsPerEpisode) >= 20):
 				steps_to_good_policy[epoch] = count
 
 

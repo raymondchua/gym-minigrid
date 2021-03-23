@@ -48,6 +48,11 @@ class GridWorldEnv(object):
 		self.random_drop_agent()
 		return self.agent_pos
 
+	def reset_center(self):
+		self.step_count = 0 
+		self.agent_pos = {'x':int(self.size/2), 'y':int(self.size/2)}
+		return self.agent_pos
+
 
 	def step(self, action):
 		reward = 0
@@ -63,9 +68,10 @@ class GridWorldEnv(object):
 			if left_cell['x'] >= 0:
 				self.agent_pos = left_cell
 
-			if self.agent_pos['x'] == self.goal_pos[0] and self.agent_pos['y'] == self.goal_pos[1]:
-				done = True
-				reward = 1
+			if self.goal_pos is not None:  
+				if self.agent_pos['x'] == self.goal_pos[0] and self.agent_pos['y'] == self.goal_pos[1]:
+					done = True
+					reward = 1
 
 		# Move right
 		elif action == self.actions.right:
@@ -76,9 +82,10 @@ class GridWorldEnv(object):
 			if right_cell['x'] < self.size:
 				self.agent_pos = right_cell
 
-			if self.agent_pos['x'] == self.goal_pos[0] and self.agent_pos['y'] == self.goal_pos[1]:
-				done = True
-				reward = 1
+			if self.goal_pos is not None:  
+				if self.agent_pos['x'] == self.goal_pos[0] and self.agent_pos['y'] == self.goal_pos[1]:
+					done = True
+					reward = 1
 
 
 		# Move upwards
@@ -90,9 +97,10 @@ class GridWorldEnv(object):
 			if up_cell['y'] < self.size:
 				self.agent_pos = up_cell
 
-			if self.agent_pos['x'] == self.goal_pos[0] and self.agent_pos['y'] == self.goal_pos[1]:
-				done = True
-				reward = 1
+			if self.goal_pos is not None:  
+				if self.agent_pos['x'] == self.goal_pos[0] and self.agent_pos['y'] == self.goal_pos[1]:
+					done = True
+					reward = 1
 
 		# Move downwards
 		elif action == self.actions.down:
@@ -103,9 +111,10 @@ class GridWorldEnv(object):
 			if down_cell['y'] >= 0:
 				self.agent_pos = down_cell
 
-			if self.agent_pos['x'] == self.goal_pos[0] and self.agent_pos['y'] == self.goal_pos[1]:
-				done = True
-				reward = 1
+			if self.goal_pos is not None:  
+				if self.agent_pos['x'] == self.goal_pos[0] and self.agent_pos['y'] == self.goal_pos[1]:
+					done = True
+					reward = 1
 
 		if self.step_count >= self.max_steps:
 			done = True
