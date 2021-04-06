@@ -258,6 +258,13 @@ def main():
 	)
 
 	parser.add_argument(
+		"--save_dir_SR",
+		type=str,
+		help="save directory for SR numpy files",
+		default='./'
+	)
+
+	parser.add_argument(
 		"--save_dir_Q",
 		type=str,
 		help="save directory for Q numpy files",
@@ -353,6 +360,7 @@ def main():
 
 	save_dir_SF = args.save_dir_SF
 	save_dir_Q = args.save_dir_Q
+	save_dir_SR = args.save_dir_SR
 
 	action_left_counter = 0
 	action_right_counter = 0
@@ -501,9 +509,9 @@ def main():
 					np.save(filename_Q_u1, Q_u1)
 
 				elif args.save_SR:
-					filename_SR_u1 = save_dir_SF+'fastRL_SR_u1_'+file_index_pad+'.npy'
+					filename_SR_u1 = save_dir_SR+'fastRL_SR_u1_'+file_index_pad+'.npy'
 					np.save(filename_SR_u1, SR_u1)
-					
+
 				episode_saved_counter+= 1
 				# np.save(filename_u2, Q_u2)
 				# np.save(filename_u3, Q_u3)
