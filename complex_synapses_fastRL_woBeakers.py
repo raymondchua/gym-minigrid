@@ -16,10 +16,10 @@ from gridworld_np import GridWorldEnv
 grid_size = 10
 
 max_steps = 20000
-num_epochs = 12
+
 discount = 0.9
 
-lam_factor = 0.9
+
 
 
 EPS_START = 1.0
@@ -206,6 +206,13 @@ def main():
 	)
 
 	parser.add_argument(
+		"--num_epochs",
+		type=int,
+		help="number of epochs",
+		default=12
+	)
+
+	parser.add_argument(
 		"--init_tube",
 		type=float,
 		help="value for g_1_2",
@@ -219,9 +226,42 @@ def main():
 	)
 
 	parser.add_argument(
+		"--save_np_files",
+		action='store_true',
+		help="Use when we want to save the numpy files of SF and/or Q values",
+	)
+
+	parser.add_argument(
+		"--lambda_factor",
+		type=float,
+		help="lambda factor for eligibility trace",
+		default=0.9
+	)
+
+	parser.add_argument(
 		"--etrace",
 		action='store_true',
 		help="Use replacing eligibility trace",
+	)
+
+	parser.add_argument(
+		"--save_SR",
+		action='store_true',
+		help="save SR matrices",
+	)
+
+	parser.add_argument(
+		"--save_dir_SF",
+		type=str,
+		help="save directory for SF numpy files",
+		default='./'
+	)
+
+	parser.add_argument(
+		"--save_dir_Q",
+		type=str,
+		help="save directory for Q numpy files",
+		default='./'
 	)
 
 	args = parser.parse_args()
@@ -242,6 +282,9 @@ def main():
 	q_lr = args.lr_Q
 	do_not_learn_Q = args.do_not_learn_Q
 	use_etrace = args.etrace
+
+	lam_factor = args.lambda_factor
+	num_epochs = args.num_epochs
 
 	# Load loggers and Tensorboard writer
 
@@ -271,9 +314,9 @@ def main():
 	Q_u2 = np.zeros((grid_size*grid_size, len(env.actions)))
 	Q_u3 = np.zeros((grid_size*grid_size, len(env.actions)))
 
-	# SR_u1 = np.zeros((grid_size*grid_size, grid_size*grid_size))
-	# SR_u2 = np.zeros((grid_size*grid_size, grid_size*grid_size))
-	# SR_u3 = np.zeros((grid_size*grid_size, grid_size*grid_size))
+	SR_u1 = np.zeros((grid_size*grid_size, grid_size*grid_size))
+	SR_u2 = np.zeros((grid_size*grid_size, grid_size*grid_size))
+	SR_u3 = np.zeros((grid_size*grid_size, grid_size*grid_size))
 
 	SF_u1 = np.zeros((grid_size*grid_size, len(env.actions), grid_size*grid_size))
 	SF_u2 = np.zeros((grid_size*grid_size, len(env.actions), grid_size*grid_size))
@@ -293,7 +336,7 @@ def main():
 	returnPerEpisode = [] 
 	stepsPerEpisode = []
 	steps_done = 0
-	epside_count = 0
+	episode_count = 0
 
 	steps_to_first_reward = np.zeros((num_epochs))
 	steps_to_good_policy = np.zeros((num_epochs))
@@ -305,6 +348,21 @@ def main():
 	
 	w_1[getStateID({'x':0,'y':0})] = 1
 	w_2[getStateID({'x':grid_size-1, 'y': grid_size-1})] = 1
+
+	episode_saved_counter = 0
+
+	save_dir_SF = args.save_dir_SF
+	save_dir_Q = args.save_dir_Q
+
+	action_left_counter = 0
+	action_right_counter = 0
+	action_up_counter = 0
+	action_down_counter = 0
+
+	action_left_episodes = []
+	action_right_episodes = []
+	action_up_episodes = []
+	action_down_episodes = []
 
 	for epoch in range(num_epochs):
 
@@ -328,6 +386,11 @@ def main():
 			state = getStateID(state)
 			eps_reward = 0
 
+			action_left_counter = 0
+			action_right_counter = 0
+			action_up_counter = 0
+			action_down_counter = 0
+
 			eps, action = eps_greedy_action(Q_u1, state, rng, len(env.actions), eps_final)
 
 			etrace = np.zeros((grid_size*grid_size, len(env.actions))) 
@@ -335,6 +398,18 @@ def main():
 			for time_steps in range(max_steps):
 				
 				steps_done += 1
+
+				if action == 0:
+					action_left_counter += 1
+
+				elif action == 1:
+					action_right_counter += 1
+
+				elif action == 2:
+					action_up_counter += 1
+
+				elif action == 3:
+					action_down_counter += 1  
 
 				next_state, reward, done, info = env.step(map_actions(action, env))
 				next_state = getStateID(next_state)
@@ -348,6 +423,8 @@ def main():
 				SF_u1[state,action,:] +=  (sf_lr * sf_error)
 
 				Q_u1_update = np.squeeze(np.dot(SF_u1[state,action,:], w))
+
+				SR_u1[state, next_state] += 1
 
 				if do_not_learn_Q:
 					Q_u1[state,action] = Q_u1_update
@@ -375,6 +452,10 @@ def main():
 					# Q_u2 = np.clip(Q_u2, a_min=0, a_max=1.0)
 					# Q_u3 = np.clip(Q_u3, a_min=0, a_max=1.0)
 					stepsPerEpisode.append(time_steps)
+					action_left_episodes.append(action_left_counter)
+					action_right_episodes.append(action_right_counter)
+					action_up_episodes.append(action_up_counter)
+					action_down_episodes.append(action_down_counter)
 					break
 
 
@@ -388,33 +469,46 @@ def main():
 
 
 			header = ["epoch", "steps", "episode", "duration"]
-			data = [epoch, steps_done, epside_count, duration]
+			data = [epoch, steps_done, episode_count, duration]
 
 			header += ["eps", "cur episode return", "returns", "avg returns", "avg steps", "steps to good policy"]
 			data += [eps, returnPerEpisode[-1], totalReturn_val, moving_avg_returns, moving_avg_steps, steps_to_good_policy[epoch]]
 
-			if epside_count % 200 == 0: 
+			header += ["Left", "Right", "Up", "Down"]
+			data += [np.sum(np.array(action_left_episodes[episode_count-200:episode_count])), np.sum(np.array(action_right_episodes[episode_count-200:episode_count])), np.sum(np.array(action_up_episodes[episode_count-200:episode_count])), np.sum(np.array(action_down_episodes[episode_count-200:episode_count]))]
+
+			if episode_count % 200 == 0: 
 				txt_logger.info(
-						"Epoch {} | S {} | Episode {} | D {} | EPS {:.3f} | R {:.3f} | Total R {:.3f} | Avg R {:.3f} | Avg S {} | Good Policy {}"
+						"Epoch {} | S {} | Episode {} | D {} | EPS {:.3f} | R {:.3f} | Total R {:.3f} | Avg R {:.3f} | Avg S {} | Good Policy {} | Left {} | Right {} | Up {} | Down {} | " 
 						.format(*data))
 
 
-			if epside_count == 0:
+			if episode_count == 0:
 				csv_logger.writerow(header)
 			csv_logger.writerow(data)
 			csv_file.flush()
 
-			if epside_count %5 == 0: 
-				filename_SF_u1 = 'fastRL_SF_u1_'+str(epside_count)+'.npy'
-				filename_Q_u1 = 'fastRL_Q_u1_'+str(epside_count)+'.npy'
-				# filename_u2 = 'Q_etraceReplace_u2_'+str(epside_count)+'.npy'
-				# filename_u3 = 'Q_etraceReplace_u3_'+str(epside_count)+'.npy'
-				np.save(filename_SF_u1, SF_u1)
-				np.save(filename_Q_u1, Q_u1)
+			if episode_count %5 == 0: 
+				file_index = str(episode_saved_counter)
+				file_index_pad = file_index.zfill(7)
+
+				if args.save_np_files: 
+					filename_SF_u1 = save_dir_SF+'fastRL_SF_u1_'+file_index_pad+'.npy'
+					filename_Q_u1 = save_dir_Q+'fastRL_Q_u1_'+file_index_pad+'.npy'
+					# filename_u2 = 'Q_etraceReplace_u2_'+str(episode_count)+'.npy'
+					# filename_u3 = 'Q_etraceReplace_u3_'+str(episode_count)+'.npy'
+					np.save(filename_SF_u1, SF_u1)
+					np.save(filename_Q_u1, Q_u1)
+
+				elif args.save_SR:
+					filename_SR_u1 = save_dir_SF+'fastRL_SR_u1_'+file_index_pad+'.npy'
+					np.save(filename_SR_u1, SR_u1)
+					
+				episode_saved_counter+= 1
 				# np.save(filename_u2, Q_u2)
 				# np.save(filename_u3, Q_u3)
 
-			epside_count += 1
+			episode_count += 1
 
 			if moving_avg_steps <= MIN_STEPS_TRESHOLD and steps_to_good_policy[epoch] == 0 and (len(stepsPerEpisode) >= MIN_EPISODES_TRESHOLD):
 				steps_to_good_policy[epoch] = count
