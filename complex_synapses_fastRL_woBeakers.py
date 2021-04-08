@@ -36,7 +36,9 @@ def eps_greedy_action(Q_values, state, rng, num_actions, eps_final):
 	eps_threshold = eps_final #as per Christos set up, using constant eps
 
 	if rand_val > eps_threshold: 
-		return eps_threshold, np.argmax(np.squeeze(Q_values[state,:]), axis=0)
+
+		Q_values_squeezed = np.squeeze(Q_values[state,:])
+		return eps_threshold, np.random.choice(Q_values_squeezed == Q_values_squeezed.max())
 
 
 	else:
