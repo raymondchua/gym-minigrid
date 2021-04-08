@@ -22,6 +22,7 @@ EPS_START = 1.0
 EPS_END = 0.05
 
 MIN_STEPS_TRESHOLD = 13
+MIN_EPISODES_TRESHOLD = 20
 
 
 def eps_greedy_action(Q_values, state, rng, num_actions, eps_final):
@@ -30,7 +31,7 @@ def eps_greedy_action(Q_values, state, rng, num_actions, eps_final):
 	eps_threshold = eps_final #as per Christos set up, using constant eps
 
 	if rand_val > eps_threshold: 
-		return eps_threshold, np.argmax(np.squeeze(Q_values[state,:]), axis=0)
+		return eps_threshold, np.random.choice(np.where(Q_values_squeezed == Q_values_squeezed.max())[0])
 
 
 	else:
@@ -301,7 +302,7 @@ def main():
 				
 			epside_count += 1
 
-			if moving_avg_steps <= MIN_STEPS_TRESHOLD and steps_to_good_policy[epoch] == 0 and (len(stepsPerEpisode) >= 20):
+			if moving_avg_steps <= MIN_STEPS_TRESHOLD and steps_to_good_policy[epoch] == 0 and (len(stepsPerEpisode) >= MIN_EPISODES_TRESHOLD):
 				steps_to_good_policy[epoch] = count
 
 
