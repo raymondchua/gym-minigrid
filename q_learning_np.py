@@ -161,6 +161,19 @@ def main():
 		default=0.9
 	)
 
+	parser.add_argument(
+		"--save_np_files",
+		action='store_true',
+		help="Use when we want to save the numpy files for Q values",
+	)
+
+	parser.add_argument(
+		"--save_dir_Q",
+		type=str,
+		help="save directory for Q numpy files",
+		default='./'
+	)
+
 
 
 	args = parser.parse_args()
@@ -209,6 +222,8 @@ def main():
 	stepsPerEpisode = []
 	steps_done = 0
 	epside_count = 0
+
+	save_dir_Q = args.save_dir_Q
 
 	env1 = GridWorldEnv(size=grid_size, goal_pos=(0,0))
 	env2 = GridWorldEnv(size=grid_size, goal_pos=(grid_size-1,grid_size-1))
@@ -296,9 +311,9 @@ def main():
 			csv_logger.writerow(data)
 			csv_file.flush()
 
-			# if epside_count % 10 == 0: 
-			# 	filename = 'Q_etraceReplace_'+str(epside_count)+'.npy'
-			# 	np.save(filename, Q_values)
+			if epside_count % 10 == 0 and args.save_np_files: 
+				filename = save_dir_Q + 'Q_etraceReplace_'+str(epside_count)+'.npy'
+				np.save(filename, Q_values)
 				
 			epside_count += 1
 
