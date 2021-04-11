@@ -4,8 +4,8 @@ import time
 import argparse
 import numpy as np
 import math
+import os
 
-import time
 import datetime
 import utils
 import sys
@@ -234,6 +234,12 @@ def main():
 	)
 
 	parser.add_argument(
+		"--save_SR",
+		action='store_true',
+		help="Use when we want to save the numpy files of SR",
+	)
+
+	parser.add_argument(
 		"--lambda_factor",
 		type=float,
 		help="lambda factor for eligibility trace",
@@ -247,42 +253,29 @@ def main():
 	)
 
 	parser.add_argument(
-		"--save_SR",
-		action='store_true',
-		help="save SR matrices",
-	)
-
-	parser.add_argument(
-		"--save_dir_SF",
+		"--save_dir",
 		type=str,
 		help="save directory for SF numpy files",
 		default='./'
 	)
 
 	parser.add_argument(
-		"--save_dir_SR",
+		"--algo_name",
 		type=str,
-		help="save directory for SR numpy files",
-		default='./'
-	)
-
-	parser.add_argument(
-		"--save_dir_Q",
-		type=str,
-		help="save directory for Q numpy files",
-		default='./'
+		help="Name for algorithm",
+		default='Benna-Fusi_fastRL'
 	)
 
 	args = parser.parse_args()
 
-	algo = 'Benna-Fusi_fastRL'
+	algo = args.algo_name
 
 	#create train dir
 	date = datetime.datetime.now().strftime("%y-%m-%d-%H-%M-%S")
 	default_model_name = f"{algo}_seed{args.seed}_{date}"
 
 	model_name = default_model_name
-	model_dir = utils.get_model_dir(model_name)
+	model_dir = utils.get_model_dir(model_name, args.save_dir)
 
 	eps_final = args.eps
 	num_episodes = args.num_episodes
@@ -307,6 +300,10 @@ def main():
 
 	# Set seed for all randomness sources
 	utils.seed(args.seed)
+
+	SF_path = utils.get_SF_dir(model_dir)
+	SR_path = utils.get_SR_dir(model_dir)
+	Q_path = utils.get_Q_dir(model_dir)
 
 	env = GridWorldEnv(size=grid_size, goal_pos=(0,0))
 	txt_logger.info("Environments loaded\n")
@@ -359,10 +356,6 @@ def main():
 	w_2[getStateID({'x':grid_size-1, 'y': grid_size-1})] = 1
 
 	episode_saved_counter = 0
-
-	save_dir_SF = args.save_dir_SF
-	save_dir_Q = args.save_dir_Q
-	save_dir_SR = args.save_dir_SR
 
 	action_left_counter = 0
 	action_right_counter = 0
@@ -503,16 +496,23 @@ def main():
 				file_index_pad = file_index.zfill(7)
 
 				if args.save_np_files: 
-					filename_SF_u1 = save_dir_SF+'fastRL_SF_u1_'+file_index_pad+'.npy'
-					filename_Q_u1 = save_dir_Q+'fastRL_Q_u1_'+file_index_pad+'.npy'
-					# filename_u2 = 'Q_etraceReplace_u2_'+str(episode_count)+'.npy'
-					# filename_u3 = 'Q_etraceReplace_u3_'+str(episode_count)+'.npy'
-					np.save(filename_SF_u1, SF_u1)
-					np.save(filename_Q_u1, Q_u1)
+					filename_SF_u1 = 'fastRL_SF_u1_'+file_index_pad+'.npy'
+					filename_Q_u1 = 'fastRL_Q_u1_'+file_index_pad+'.npy'
+					
+					filepath_SF_u1 = os.path.join(SF_path, filename_SF_u1)
+					utils.create_folders_if_necessary(filepath_SF_u1)
 
-				elif args.save_SR:
-					filename_SR_u1 = save_dir_SR+'fastRL_SR_u1_'+file_index_pad+'.npy'
-					np.save(filename_SR_u1, SR_u1)
+					filepath_Q_u1 = os.path.join(Q_path, filename_Q_u1)
+					utils.create_folders_if_necessary(filepath_Q_u1)
+
+					np.save(filepath_SF_u1, SF_u1)
+					np.save(filepath_Q_u1, Q_u1)
+
+				if args.save_SR:
+					filename_SR_u1 = 'fastRL_SR_u1_'+file_index_pad+'.npy'
+					filepath_SR_u1 = os.path.join(SR_path, filename_SR_u1)
+					utils.create_folders_if_necessary(filepath_SR_u1)
+					np.save(filepath_SR_u1, SR_u1)
 
 				episode_saved_counter+= 1
 				# np.save(filename_u2, Q_u2)

@@ -18,8 +18,8 @@ def get_storage_dir():
 	return "storage"
 
 
-def get_model_dir(model_name):
-	return os.path.join(get_storage_dir(), model_name)
+def get_model_dir(model_name, save_dir):
+	return os.path.join(save_dir, get_storage_dir(), model_name)
 
 
 def get_status_path(model_dir):
@@ -36,6 +36,20 @@ def get_status_path(model_dir):
 # 	utils.create_folders_if_necessary(path)
 # 	torch.save(status, path)
 
+def get_SF_dir(model_dir):
+	path = os.path.join(model_dir, "SF_numpy")
+	utils.create_folders_if_necessary(path)
+	return path
+
+def get_SR_dir(model_dir):
+	path = os.path.join(model_dir, "SR_numpy")
+	utils.create_folders_if_necessary(path)
+	return path
+
+def get_Q_dir(model_dir):
+	path = os.path.join(model_dir, "Q_numpy")
+	utils.create_folders_if_necessary(path)
+	return path
 
 def get_vocab(model_dir):
 	return get_status(model_dir)["vocab"]
