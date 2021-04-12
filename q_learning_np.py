@@ -175,11 +175,18 @@ def main():
 		default='./'
 	)
 
+	parser.add_argument(
+		"--algo_name",
+		type=str,
+		help="Name for algorithm",
+		default='Benna-Fusi_fastRL'
+	)
+
 
 
 	args = parser.parse_args()
 
-	algo = 'Q-learning'
+	algo = args.algo_name
 
 	#create train dir
 	date = datetime.datetime.now().strftime("%y-%m-%d-%H-%M-%S")
