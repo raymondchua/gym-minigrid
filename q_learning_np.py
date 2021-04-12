@@ -176,6 +176,13 @@ def main():
 	)
 
 	parser.add_argument(
+		"--save_dir",
+		type=str,
+		help="save directory for SF numpy files",
+		default='./'
+	)
+
+	parser.add_argument(
 		"--algo_name",
 		type=str,
 		help="Name for algorithm",
@@ -194,7 +201,8 @@ def main():
 
 
 	model_name = default_model_name
-	model_dir = utils.get_model_dir(model_name)
+	model_dir = utils.get_model_dir(model_name, args.save_dir)
+
 
 	# Load loggers and Tensorboard writer
 
