@@ -20,8 +20,6 @@ max_steps = 20000
 discount = 0.9
 
 
-
-
 EPS_START = 1.0
 EPS_END = 0.05
 
