@@ -176,7 +176,7 @@ def main():
 	)
 
 	parser.add_argument(
-		"--init_tube"
+		"--init_tube",
 		type=float,
 		help="value for g_1_2",
 		default=0.00001
