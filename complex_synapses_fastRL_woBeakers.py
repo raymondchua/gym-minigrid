@@ -261,7 +261,7 @@ def main():
 		"--algo_name",
 		type=str,
 		help="Name for algorithm",
-		default='Benna-Fusi_fastRL'
+		required=True
 	)
 
 	args = parser.parse_args()

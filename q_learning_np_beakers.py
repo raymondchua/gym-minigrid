@@ -156,13 +156,6 @@ def main():
 	)
 
 	parser.add_argument(
-		"--lambda_factor",
-		type=float,
-		help="lambda factor for eligibility trace",
-		default=0.9
-	)
-
-	parser.add_argument(
 		"--save_np_files",
 		action='store_true',
 		help="Use when we want to save the numpy files for Q values",
@@ -229,7 +222,6 @@ def main():
 	status = {"num_steps": 0, "update": 0, "num_episodes":0}
 	txt_logger.info("Training status loaded\n")
 
-	Q_values = np.zeros((grid_size*grid_size, len(env.actions)))
 	rng =  np.random.default_rng(args.seed)
 
 	start_time = time.time()
@@ -246,6 +238,10 @@ def main():
 
 	steps_to_first_reward = np.zeros((num_epochs))
 	steps_to_good_policy = np.zeros((num_epochs))
+
+	Q_u1 = np.zeros((grid_size*grid_size, len(env.actions)))
+	Q_u2 = np.zeros((grid_size*grid_size, len(env.actions)))
+	Q_u3 = np.zeros((grid_size*grid_size, len(env.actions)))
 
 	for epoch in range(num_epochs):
 
@@ -267,34 +263,38 @@ def main():
 			state = getStateID(state)
 			eps_reward = 0
 
-			etrace = np.zeros((grid_size*grid_size, len(env.actions))) 
-
 			for time_steps in range(max_steps):
 				
-				eps, action = eps_greedy_action(Q_values, state, rng, len(env.actions), eps_final)
+				eps, action = eps_greedy_action(Q_u1, state, rng, len(env.actions), eps_final)
 				steps_done += 1
 
 				next_state, reward, done, info = env.step(map_actions(action, env))
 				next_state = getStateID(next_state)
-				# next_state, reward, done, info = step(map_actions(action))
 				
 				eps_reward += reward
 
-				#update eligibility trace
-				etrace = np.multiply(etrace,discount * lam_factor)
-				etrace[state,action] = 1
+				td_error = compute_td_error(state, next_state, action, reward, Q_u1)
 
-				td_error = compute_td_error(state, next_state, action, reward, Q_values)
-				td_error_etrace = np.multiply(etrace, td_error)
+				Q_update_u1 = Q_u1[state,action] + ((lr/C_1) * (td_error + g_1_2 * (Q_u2[state, action] - Q_u1[state,action])))
+				Q_u1[state, action] = Q_update_u1
 
-				Q_values = Q_values + (lr * td_error_etrace)
+				#update Q_u2
+				Q_update_u2 = Q_u2[state,action] + ((lr/C_2) * (g_1_2 * (Q_u1[state, action] - Q_u2[state,action]) + \
+								g_2_3*(Q_u3[state, action] - Q_u2[state, action])))
+				Q_u2[state,action] =  Q_update_u2
+
+				#update Q_u3
+				Q_update_u3 = Q_u3[state,action] + ((lr/C_3) * (g_2_3 * (Q_u2[state,action] - Q_u3[state, action])))
+				Q_u3[state,action] = Q_update_u3
 
 				state = next_state
 				count += 1
 
 				if done:
 					returnPerEpisode.append(eps_reward)
-					Q_values = np.clip(Q_values,  a_min=0.0, a_max=1.0)
+					Q_u1 = np.clip(Q_u1,  a_min=0.0, a_max=1.0)
+					Q_u2 = np.clip(Q_u2,  a_min=0.0, a_max=1.0)
+					Q_u3 = np.clip(Q_u3,  a_min=0.0, a_max=1.0)
 					stepsPerEpisode.append(time_steps)
 					break
 
@@ -305,10 +305,8 @@ def main():
 			moving_avg_returns = np.mean(np.array(returnPerEpisode[-100:]))
 			moving_avg_steps = np.mean(np.array(stepsPerEpisode[-20:]))
 
-
 			header = ["epoch", "steps", "episode", "duration"]
 			data = [epoch, steps_done, epside_count, duration]
-
 
 			header += ["eps", "cur episode return", "returns", "avg returns", "avg steps", "steps to good policy"]
 			data += [eps, returnPerEpisode[-1], totalReturn_val, moving_avg_returns, moving_avg_steps, steps_to_good_policy[epoch]]
@@ -324,8 +322,12 @@ def main():
 			csv_file.flush()
 
 			if epside_count % 10 == 0 and args.save_np_files: 
-				filename = save_dir_Q + 'Q_etraceReplace_'+str(epside_count)+'.npy'
-				np.save(filename, Q_values)
+				filename_u1 = save_dir_Q + 'Q_u1_'+ str(epside_count)+'.npy'
+				filename_u2 = save_dir_Q + 'Q_u2_'+ str(epside_count)+'.npy'
+				filename_u3 = save_dir_Q + 'Q_u3_'+ str(epside_count)+'.npy'
+				np.save(filename_u1, Q_u1)
+				np.save(filename_u2, Q_u2)
+				np.save(filename_u3, Q_u3)
 				
 			epside_count += 1
 
