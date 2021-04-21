@@ -221,7 +221,6 @@ def main():
 	eps_final = args.eps
 	num_episodes = args.num_episodes
 	lr = args.lr_Q
-	lam_factor = args.lambda_factor
 
 
 	env = GridWorldEnv(size=grid_size, goal_pos=(0,0))
