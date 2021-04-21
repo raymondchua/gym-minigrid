@@ -176,6 +176,14 @@ def main():
 	)
 
 	parser.add_argument(
+		"--init_tube"
+		type=float,
+		help="value for g_1_2",
+		default=0.00001
+	)
+
+
+	parser.add_argument(
 		"--algo_name",
 		type=str,
 		help="Name for algorithm",
@@ -238,6 +246,14 @@ def main():
 
 	steps_to_first_reward = np.zeros((num_epochs))
 	steps_to_good_policy = np.zeros((num_epochs))
+
+	g_1_2 = args.init_tube #original was 0.00001
+	g_2_3 = g_1_2 / 2
+
+	C_1 = 1
+	C_2 = 2**1
+	C_3 = 2**2
+	  
 
 	Q_u1 = np.zeros((grid_size*grid_size, len(env.actions)))
 	Q_u2 = np.zeros((grid_size*grid_size, len(env.actions)))
