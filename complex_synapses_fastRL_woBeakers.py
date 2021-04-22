@@ -365,6 +365,8 @@ def main():
 	action_up_episodes = []
 	action_down_episodes = []
 
+	start_positions = []
+
 	for epoch in range(num_epochs):
 
 		count = 0
@@ -384,6 +386,10 @@ def main():
 		for episode in range(num_episodes):
 			
 			state = env.reset()
+
+			start_positions.append(state)
+
+
 			state = getStateID(state)
 			eps_reward = 0
 
@@ -450,8 +456,6 @@ def main():
 				if done:
 					returnPerEpisode.append(eps_reward)
 					Q_u1 = np.clip(Q_u1, a_min=0, a_max=1.0)
-					# Q_u2 = np.clip(Q_u2, a_min=0, a_max=1.0)
-					# Q_u3 = np.clip(Q_u3, a_min=0, a_max=1.0)
 					stepsPerEpisode.append(time_steps)
 					action_left_episodes.append(action_left_counter)
 					action_right_episodes.append(action_right_counter)
@@ -475,12 +479,12 @@ def main():
 			header += ["eps", "cur episode return", "returns", "avg returns", "avg steps", "steps to good policy"]
 			data += [eps, returnPerEpisode[-1], totalReturn_val, moving_avg_returns, moving_avg_steps, steps_to_good_policy[epoch]]
 
-			header += ["Left", "Right", "Up", "Down"]
-			data += [np.sum(np.array(action_left_episodes[episode_count-200:episode_count])), np.sum(np.array(action_right_episodes[episode_count-200:episode_count])), np.sum(np.array(action_up_episodes[episode_count-200:episode_count])), np.sum(np.array(action_down_episodes[episode_count-200:episode_count]))]
+			header += ["Left", "Right", "Up", "Down", "Start P"]
+			data += [np.sum(np.array(action_left_episodes[episode_count-200:episode_count])), np.sum(np.array(action_right_episodes[episode_count-200:episode_count])), np.sum(np.array(action_up_episodes[episode_count-200:episode_count])), np.sum(np.array(action_down_episodes[episode_count-200:episode_count])), start_positions[episode_count]]
 
 			if episode_count % 200 == 0: 
 				txt_logger.info(
-						"Epoch {} | S {} | Episode {} | D {} | EPS {:.3f} | R {:.3f} | Total R {:.3f} | Avg R {:.3f} | Avg S {} | Good Policy {} | Left {} | Right {} | Up {} | Down {} | " 
+						"Epoch {} | S {} | Episode {} | D {} | EPS {:.3f} | R {:.3f} | Total R {:.3f} | Avg R {:.3f} | Avg S {} | Good Policy {} | Left {} | Right {} | Up {} | Down {} | Start P {}" 
 						.format(*data))
 
 
