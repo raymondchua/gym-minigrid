@@ -225,7 +225,7 @@ def main():
 
 	txt_logger = utils.get_txt_logger(model_dir)
 	csv_file, csv_logger = utils.get_csv_logger(model_dir)
-	csv_file_snapshot, csv_logger_snapshot = utils.get_csv_logger(model_dir)
+	csv_file_snapshot, csv_logger_snapshot = utils.get_csv_logger_snapshot(model_dir)
 
 	# Log command and all script arguments
 

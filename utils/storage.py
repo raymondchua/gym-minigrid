@@ -80,3 +80,9 @@ def get_csv_logger(model_dir):
 	utils.create_folders_if_necessary(csv_path)
 	csv_file = open(csv_path, "a")
 	return csv_file, csv.writer(csv_file)
+
+def get_csv_logger_snapshot(model_dir):
+	csv_path = os.path.join(model_dir, "log_snapshot.csv")
+	utils.create_folders_if_necessary(csv_path)
+	csv_file = open(csv_path, "a")
+	return csv_file, csv.writer(csv_file)
