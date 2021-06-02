@@ -398,8 +398,9 @@ def main():
 					header_snapshots = ["epoch", "steps", "episode", "taskID"]
 					data_snapshots = [epoch, steps_done, episode_count, taskID]
 
-					csv_logger_snapshot.writerow(header_snapshots)
-					csv_logger_snapshot.writerow(data)
+					if steps_done == 0:
+						csv_logger_snapshot.writerow(header_snapshots)
+					csv_logger_snapshot.writerow(data_snapshots)
 					csv_file_snapshot.flush()
 
 					if args.save_np_files: 
