@@ -398,7 +398,7 @@ def main():
 					header_snapshots = ["epoch", "steps", "episode", "taskID"]
 					data_snapshots = [epoch, steps_done, episode_count, taskID]
 
-					if steps_done == 0:
+					if steps_done == 1:
 						csv_logger_snapshot.writerow(header_snapshots)
 					csv_logger_snapshot.writerow(data_snapshots)
 					csv_file_snapshot.flush()
