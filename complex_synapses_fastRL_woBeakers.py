@@ -398,10 +398,9 @@ def main():
 					header_snapshots = ["epoch", "steps", "episode", "taskID"]
 					data_snapshots = [epoch, steps_done, episode_count, taskID]
 
-					if episode_count == 0:
-						csv_logger_snapshot.writerow(header_snapshots)
-						csv_logger_snapshot.writerow(data)
-						csv_file_snapshot.flush()
+					csv_logger_snapshot.writerow(header_snapshots)
+					csv_logger_snapshot.writerow(data)
+					csv_file_snapshot.flush()
 
 					if args.save_np_files: 
 						filename_SF_u1 = 'fastRL_SF_u1_'+file_index_pad+'.npy'
