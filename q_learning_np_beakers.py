@@ -24,6 +24,7 @@ EPS_END = 0.05
 MIN_STEPS_TRESHOLD = 13
 MIN_EPISODES_TRESHOLD = 20
 
+TIMESTEP_WINDOW = 1000
 
 def eps_greedy_action(Q_values, state, rng, num_actions, eps_final):
 	rand_val = rng.uniform()
@@ -38,48 +39,6 @@ def eps_greedy_action(Q_values, state, rng, num_actions, eps_final):
 	else:
 		return eps_threshold, rng.integers(low=0, high=num_actions, size=1)[0]
 
-
-def key_handler(event):
-	print('pressed', event.key)
-
-	if event.key == 'escape':
-		window.close()
-		return
-
-	if event.key == 'backspace':
-		reset()
-		return
-
-	if event.key == 'left':
-		step(env.actions.left)
-		return
-	if event.key == 'right':
-		step(env.actions.right)
-		return
-	if event.key == 'up':
-		step(env.actions.up)
-		return
-
-	# Spacebar
-	if event.key == ' ':
-		step(env.actions.toggle)
-		return
-	if event.key == 'pageup':
-		step(env.actions.pickup)
-		return
-	if event.key == 'pagedown':
-		step(env.actions.drop)
-		return
-
-	if event.key == 'enter':
-		step(env.actions.done)
-		return
-
-def redraw(img):
-	if not args.agent_view:
-		img = env.render('rgb_array', tile_size=args.tile_size)
-
-	window.show_img(img)
 
 def reset():
 	if args.seed != -1:
@@ -209,6 +168,8 @@ def main():
 
 	txt_logger = utils.get_txt_logger(model_dir)
 	csv_file, csv_logger = utils.get_csv_logger(model_dir)
+	csv_file_snapshot, csv_logger_snapshot = utils.get_csv_logger_snapshot(model_dir)
+
 
 	# Log command and all script arguments
 
@@ -305,6 +266,29 @@ def main():
 				state = next_state
 				count += 1
 
+				if steps_done % TIMESTEP_WINDOW == 0:
+
+					file_index = str(steps_done)
+					file_index_pad = file_index.zfill(7)
+
+					taskID = epoch%2
+
+					header_snapshots = ["epoch", "steps", "episode", "taskID"]
+					data_snapshots = [epoch, steps_done, episode_count, taskID]
+
+					if steps_done == 1:
+						csv_logger_snapshot.writerow(header_snapshots)
+					csv_logger_snapshot.writerow(data_snapshots)
+					csv_file_snapshot.flush()
+
+					if args.save_np_files: 
+						filename_u1 = save_dir_Q + 'Q_u1_'+ file_index_pad+'.npy'
+						filename_u2 = save_dir_Q + 'Q_u2_'+ file_index_pad+'.npy'
+						filename_u3 = save_dir_Q + 'Q_u3_'+ file_index_pad+'.npy'
+						np.save(filename_u1, Q_u1)
+						np.save(filename_u2, Q_u2)
+						np.save(filename_u3, Q_u3)
+
 				if done:
 					returnPerEpisode.append(eps_reward)
 					Q_u1 = np.clip(Q_u1,  a_min=0.0, a_max=1.0)
@@ -336,13 +320,13 @@ def main():
 			csv_logger.writerow(data)
 			csv_file.flush()
 
-			if epside_count % 10 == 0 and args.save_np_files: 
-				filename_u1 = save_dir_Q + 'Q_u1_'+ str(epside_count)+'.npy'
-				filename_u2 = save_dir_Q + 'Q_u2_'+ str(epside_count)+'.npy'
-				filename_u3 = save_dir_Q + 'Q_u3_'+ str(epside_count)+'.npy'
-				np.save(filename_u1, Q_u1)
-				np.save(filename_u2, Q_u2)
-				np.save(filename_u3, Q_u3)
+			# if epside_count % 10 == 0 and args.save_np_files: 
+			# 	filename_u1 = save_dir_Q + 'Q_u1_'+ str(epside_count)+'.npy'
+			# 	filename_u2 = save_dir_Q + 'Q_u2_'+ str(epside_count)+'.npy'
+			# 	filename_u3 = save_dir_Q + 'Q_u3_'+ str(epside_count)+'.npy'
+			# 	np.save(filename_u1, Q_u1)
+			# 	np.save(filename_u2, Q_u2)
+			# 	np.save(filename_u3, Q_u3)
 				
 			epside_count += 1
 
