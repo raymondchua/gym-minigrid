@@ -498,7 +498,7 @@ def main():
 			# 		utils.create_folders_if_necessary(filepath_SR_u1)
 			# 		np.save(filepath_SR_u1, SR_u1)
 
-				episode_saved_counter+= 1
+				# episode_saved_counter+= 1
 				# np.save(filename_u2, Q_u2)
 				# np.save(filename_u3, Q_u3)
 
