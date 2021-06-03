@@ -197,7 +197,7 @@ def main():
 	returnPerEpisode = [] 
 	stepsPerEpisode = []
 	steps_done = 0
-	epside_count = 0
+	episode_count = 0
 
 	save_dir_Q = args.save_dir_Q
 
@@ -305,30 +305,30 @@ def main():
 			moving_avg_steps = np.mean(np.array(stepsPerEpisode[-20:]))
 
 			header = ["epoch", "steps", "episode", "duration"]
-			data = [epoch, steps_done, epside_count, duration]
+			data = [epoch, steps_done, episode_count, duration]
 
 			header += ["eps", "cur episode return", "returns", "avg returns", "avg steps", "steps to good policy"]
 			data += [eps, returnPerEpisode[-1], totalReturn_val, moving_avg_returns, moving_avg_steps, steps_to_good_policy[epoch]]
 
-			if epside_count % 200 == 0: 
+			if episode_count % 200 == 0: 
 				txt_logger.info(
 						"Epoch {} | S {} | Episode {} | D {} | EPS {:.3f} | R {:.3f} | Total R {:.3f} | Avg R {:.3f} | Avg S {} | Good Policy {}"
 						.format(*data))
 
-			if epside_count == 0:
+			if episode_count == 0:
 				csv_logger.writerow(header)
 			csv_logger.writerow(data)
 			csv_file.flush()
 
-			# if epside_count % 10 == 0 and args.save_np_files: 
-			# 	filename_u1 = save_dir_Q + 'Q_u1_'+ str(epside_count)+'.npy'
-			# 	filename_u2 = save_dir_Q + 'Q_u2_'+ str(epside_count)+'.npy'
-			# 	filename_u3 = save_dir_Q + 'Q_u3_'+ str(epside_count)+'.npy'
+			# if episode_count % 10 == 0 and args.save_np_files: 
+			# 	filename_u1 = save_dir_Q + 'Q_u1_'+ str(episode_count)+'.npy'
+			# 	filename_u2 = save_dir_Q + 'Q_u2_'+ str(episode_count)+'.npy'
+			# 	filename_u3 = save_dir_Q + 'Q_u3_'+ str(episode_count)+'.npy'
 			# 	np.save(filename_u1, Q_u1)
 			# 	np.save(filename_u2, Q_u2)
 			# 	np.save(filename_u3, Q_u3)
 				
-			epside_count += 1
+			episode_count += 1
 
 			if moving_avg_steps <= MIN_STEPS_TRESHOLD and steps_to_good_policy[epoch] == 0 and (len(stepsPerEpisode) >= MIN_EPISODES_TRESHOLD):
 				steps_to_good_policy[epoch] = count
