@@ -27,6 +27,9 @@ EPS_END = 0.05
 MIN_STEPS_TRESHOLD = 13
 MIN_EPISODES_TRESHOLD = 20
 
+TIMESTEP_WINDOW = 1000
+
+
 
 def eps_greedy_action(Q_values, state, rng, num_actions, eps_final):
 	rand_val = rng.uniform()
