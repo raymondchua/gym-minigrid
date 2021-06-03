@@ -281,13 +281,23 @@ def main():
 					csv_logger_snapshot.writerow(data_snapshots)
 					csv_file_snapshot.flush()
 
+
 					if args.save_np_files: 
-						filename_u1 = save_dir_Q + 'Q_u1_'+ file_index_pad+'.npy'
-						filename_u2 = save_dir_Q + 'Q_u2_'+ file_index_pad+'.npy'
-						filename_u3 = save_dir_Q + 'Q_u3_'+ file_index_pad+'.npy'
-						np.save(filename_u1, Q_u1)
-						np.save(filename_u2, Q_u2)
-						np.save(filename_u3, Q_u3)
+						filename_Q_u1 = 'fastRL_Q_u1_'+file_index_pad+'.npy'
+						filename_Q_u2 = 'fastRL_Q_u2_'+file_index_pad+'.npy'
+						filename_Q_u3 = 'fastRL_Q_u3_'+file_index_pad+'.npy'
+			
+						filepath_Q_u1 = os.path.join(Q_path, filename_Q_u1)
+						filepath_Q_u2 = os.path.join(Q_path, filename_Q_u2)
+						filepath_Q_u3 = os.path.join(Q_path, filename_Q_u3)
+						
+						utils.create_folders_if_necessary(filepath_Q_u1)
+						utils.create_folders_if_necessary(filepath_Q_u2)
+						utils.create_folders_if_necessary(filepath_Q_u3)
+
+						np.save(filepath_Q_u1, Q_u1)
+						np.save(filepath_Q_u2, Q_u2)
+						np.save(filepath_Q_u3, Q_u3)
 
 				if done:
 					returnPerEpisode.append(eps_reward)
