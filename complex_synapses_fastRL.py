@@ -42,74 +42,6 @@ def eps_greedy_action(Q_values, state, rng, num_actions, eps_final):
 	else:
 		return eps_threshold, rng.integers(low=0, high=num_actions, size=1)[0]
 
-# def policyLEFT():
-# 	return 0
-
-# def policyRandomAction(rng, num_actions):
-# 	return ng.integers(low=0, high=num_actions, size=1)[0]
-
-# def policy75pLEFT(rng, num_actions):
-# 	rand_val = rng.uniform()
-# 	threshold = 0.75
-
-# 	if rand_val > threshold:
-# 		return rng.integers(low=0, high=num_actions, size=1)[0]
-
-# 	else: 
-# 		return 0
-
-# def policy75pRIGHT(rng, num_actions):
-# 	rand_val = rng.uniform()
-# 	threshold = 0.75
-
-# 	if rand_val > threshold:
-# 		return rng.integers(low=0, high=num_actions, size=1)[0]
-
-# 	else: 
-# 		return 1
-
-
-def key_handler(event):
-	print('pressed', event.key)
-
-	if event.key == 'escape':
-		window.close()
-		return
-
-	if event.key == 'backspace':
-		reset()
-		return
-
-	if event.key == 'left':
-		step(env.actions.left)
-		return
-	if event.key == 'right':
-		step(env.actions.right)
-		return
-	if event.key == 'up':
-		step(env.actions.forward)
-		return
-
-	# Spacebar
-	if event.key == ' ':
-		step(env.actions.toggle)
-		return
-	if event.key == 'pageup':
-		step(env.actions.pickup)
-		return
-	if event.key == 'pagedown':
-		step(env.actions.drop)
-		return
-
-	if event.key == 'enter':
-		step(env.actions.done)
-		return
-
-def redraw(img):
-	if not args.agent_view:
-		img = env.render('rgb_array', tile_size=args.tile_size)
-
-	window.show_img(img)
 
 def reset():
 	if args.seed != -1:
@@ -290,6 +222,8 @@ def main():
 
 	txt_logger = utils.get_txt_logger(model_dir)
 	csv_file, csv_logger = utils.get_csv_logger(model_dir)
+	csv_file_snapshot, csv_logger_snapshot = utils.get_csv_logger_snapshot(model_dir)
+
 
 	# Log command and all script arguments
 
@@ -456,6 +390,49 @@ def main():
 
 				count += 1
 
+				if steps_done % TIMESTEP_WINDOW == 0:
+					file_index = str(steps_done)
+					file_index_pad = file_index.zfill(7)
+
+					taskID = epoch%2
+
+					header_snapshots = ["epoch", "steps", "episode", "taskID"]
+					data_snapshots = [epoch, steps_done, episode_count, taskID]
+
+					if steps_done == 1:
+						csv_logger_snapshot.writerow(header_snapshots)
+					csv_logger_snapshot.writerow(data_snapshots)
+					csv_file_snapshot.flush()
+
+					if args.save_np_files: 
+						filename_SF_u1 = 'fastRL_SF_u1_'+file_index_pad+'.npy'
+						filename_SF_u2 = 'fastRL_SF_u2_'+file_index_pad+'.npy'
+						filename_SF_u3 = 'fastRL_SF_u3_'+file_index_pad+'.npy'
+						filename_Q_u1 = 'fastRL_Q_u1_'+file_index_pad+'.npy'
+						
+						filepath_SF_u1 = os.path.join(SF_path, filename_SF_u1)
+						utils.create_folders_if_necessary(filepath_SF_u1)
+
+						filepath_SF_u2 = os.path.join(SF_path, filename_SF_u2)
+						utils.create_folders_if_necessary(filepath_SF_u2)
+
+						filepath_SF_u3 = os.path.join(SF_path, filename_SF_u3)
+						utils.create_folders_if_necessary(filepath_SF_u3)
+
+						filepath_Q_u1 = os.path.join(Q_path, filename_Q_u1)
+						utils.create_folders_if_necessary(filepath_Q_u1)
+
+						np.save(filepath_SF_u1, SF_u1)
+						np.save(filepath_SF_u2, SF_u2)
+						np.save(filepath_SF_u3, SF_u3)
+						np.save(filepath_Q_u1, Q_u1)
+
+					if args.save_SR:
+						filename_SR_u1 = 'fastRL_SR_u1_'+file_index_pad+'.npy'
+						filepath_SR_u1 = os.path.join(SR_path, filename_SR_u1)
+						utils.create_folders_if_necessary(filepath_SR_u1)
+						np.save(filepath_SR_u1, SR_u1)
+
 				if done:
 					returnPerEpisode.append(eps_reward)
 					Q_u1 = np.clip(Q_u1, a_min=0, a_max=1.0)
@@ -498,28 +475,28 @@ def main():
 			csv_logger.writerow(data)
 			csv_file.flush()
 
-			if episode_count %5 == 0: 
-				file_index = str(episode_saved_counter)
-				file_index_pad = file_index.zfill(7)
+			# if episode_count %5 == 0: 
+			# 	file_index = str(episode_saved_counter)
+			# 	file_index_pad = file_index.zfill(7)
 
-				if args.save_np_files: 
-					filename_SF_u1 = 'fastRL_SF_u1_'+file_index_pad+'.npy'
-					filename_Q_u1 = 'fastRL_Q_u1_'+file_index_pad+'.npy'
+			# 	if args.save_np_files: 
+			# 		filename_SF_u1 = 'fastRL_SF_u1_'+file_index_pad+'.npy'
+			# 		filename_Q_u1 = 'fastRL_Q_u1_'+file_index_pad+'.npy'
 					
-					filepath_SF_u1 = os.path.join(SF_path, filename_SF_u1)
-					utils.create_folders_if_necessary(filepath_SF_u1)
+			# 		filepath_SF_u1 = os.path.join(SF_path, filename_SF_u1)
+			# 		utils.create_folders_if_necessary(filepath_SF_u1)
 
-					filepath_Q_u1 = os.path.join(Q_path, filename_Q_u1)
-					utils.create_folders_if_necessary(filepath_Q_u1)
+			# 		filepath_Q_u1 = os.path.join(Q_path, filename_Q_u1)
+			# 		utils.create_folders_if_necessary(filepath_Q_u1)
 
-					np.save(filepath_SF_u1, SF_u1)
-					np.save(filepath_Q_u1, Q_u1)
+			# 		np.save(filepath_SF_u1, SF_u1)
+			# 		np.save(filepath_Q_u1, Q_u1)
 
-				if args.save_SR:
-					filename_SR_u1 = 'fastRL_SR_u1_'+file_index_pad+'.npy'
-					filepath_SR_u1 = os.path.join(SR_path, filename_SR_u1)
-					utils.create_folders_if_necessary(filepath_SR_u1)
-					np.save(filepath_SR_u1, SR_u1)
+			# 	if args.save_SR:
+			# 		filename_SR_u1 = 'fastRL_SR_u1_'+file_index_pad+'.npy'
+			# 		filepath_SR_u1 = os.path.join(SR_path, filename_SR_u1)
+			# 		utils.create_folders_if_necessary(filepath_SR_u1)
+			# 		np.save(filepath_SR_u1, SR_u1)
 
 				episode_saved_counter+= 1
 				# np.save(filename_u2, Q_u2)
