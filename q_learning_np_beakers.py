@@ -221,6 +221,8 @@ def main():
 	Q_u2 = np.zeros((grid_size*grid_size, len(env.actions)))
 	Q_u3 = np.zeros((grid_size*grid_size, len(env.actions)))
 
+	Q_path = utils.get_Q_dir(model_dir)
+
 	for epoch in range(num_epochs):
 
 		if epoch%2==0:
