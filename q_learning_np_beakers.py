@@ -235,8 +235,6 @@ def main():
 		returnPerEpisode = [] 
 		stepsPerEpisode = []
 
-		good_policy_count = 0
-
 		for episode in range(num_episodes):
 			
 			state = env.reset()
@@ -318,13 +316,16 @@ def main():
 			moving_avg_returns = np.mean(np.array(returnPerEpisode[-100:]))
 			moving_avg_steps = np.mean(np.array(stepsPerEpisode[-20:]))
 
+			if moving_avg_steps <= MIN_STEPS_TRESHOLD and steps_to_good_policy[epoch] == 0 and (len(stepsPerEpisode) >= MIN_EPISODES_TRESHOLD):
+				steps_to_good_policy[epoch] = count
+
 			header = ["epoch", "steps", "episode", "duration"]
 			data = [epoch, steps_done, episode_count, duration]
 
 			header += ["eps", "cur episode return", "returns", "avg returns", "avg steps", "steps to good policy"]
 			data += [eps, returnPerEpisode[-1], totalReturn_val, moving_avg_returns, moving_avg_steps, steps_to_good_policy[epoch]]
 
-			if episode_count % 200 == 0: 
+			if episode_count % 50 == 0: 
 				txt_logger.info(
 						"Epoch {} | S {} | Episode {} | D {} | EPS {:.3f} | R {:.3f} | Total R {:.3f} | Avg R {:.3f} | Avg S {} | Good Policy {}"
 						.format(*data))
@@ -344,8 +345,7 @@ def main():
 				
 			episode_count += 1
 
-			if moving_avg_steps <= MIN_STEPS_TRESHOLD and steps_to_good_policy[epoch] == 0 and (len(stepsPerEpisode) >= MIN_EPISODES_TRESHOLD):
-				steps_to_good_policy[epoch] = count
+			
 
 
 
