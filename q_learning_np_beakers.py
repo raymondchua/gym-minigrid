@@ -151,6 +151,13 @@ def main():
 		required=True
 	)
 
+	parser.add_argument(
+		"--lambda_factor",
+		type=float,
+		help="lambda factor for eligibility trace",
+		default=0.9
+	)
+
 
 
 	args = parser.parse_args()
@@ -184,6 +191,8 @@ def main():
 	eps_final = args.eps
 	num_episodes = args.num_episodes
 	lr = args.lr_Q
+	lam_factor = args.lambda_factor
+
 
 
 	env = GridWorldEnv(size=grid_size, goal_pos=(0,0))
@@ -241,6 +250,8 @@ def main():
 			state = getStateID(state)
 			eps_reward = 0
 
+			etrace = np.zeros((grid_size*grid_size, len(env.actions))) 
+
 			for time_steps in range(max_steps):
 				
 				eps, action = eps_greedy_action(Q_u1, state, rng, len(env.actions), eps_final)
@@ -251,19 +262,36 @@ def main():
 				
 				eps_reward += reward
 
-				td_error = compute_td_error(state, next_state, action, reward, Q_u1)
+				#update eligibility trace
+				etrace = np.multiply(etrace,discount * lam_factor)
+				etrace[state,action] = 1
 
-				Q_update_u1 = Q_u1[state,action] + ((lr/C_1) * (td_error + g_1_2 * (Q_u2[state, action] - Q_u1[state,action])))
-				Q_u1[state, action] = Q_update_u1
+				td_error = compute_td_error(state, next_state, action, reward, Q_u1)
+				td_error_etrace = np.multiply(etrace, td_error)
+
+				# Q_update_u1 = Q_u1[state,action] + ((lr/C_1) * (td_error_etrace + g_1_2 * (Q_u2[state, action] - Q_u1[state,action])))
+				# Q_u1[state, action] = Q_update_u1
+
+				# #update Q_u2
+				# Q_update_u2 = Q_u2[state,action] + ((lr/C_2) * (g_1_2 * (Q_u1[state, action] - Q_u2[state,action]) + \
+				# 				g_2_3*(Q_u3[state, action] - Q_u2[state, action])))
+				# Q_u2[state,action] =  Q_update_u2
+
+				# #update Q_u3
+				# Q_update_u3 = Q_u3[state,action] + ((lr/C_3) * (g_2_3 * (Q_u2[state,action] - Q_u3[state, action])))
+				# Q_u3[state,action] = Q_update_u3
+
+				# Q_values = Q_values + (lr * td_error_etrace)
+
+				Q_u1 = Q_u1 + ((lr/C_1) * (td_error_etrace + g_1_2 * (Q_u2 - Q_u1)))
+				# Q_u1[state, action] = Q_update_u1
 
 				#update Q_u2
-				Q_update_u2 = Q_u2[state,action] + ((lr/C_2) * (g_1_2 * (Q_u1[state, action] - Q_u2[state,action]) + \
-								g_2_3*(Q_u3[state, action] - Q_u2[state, action])))
-				Q_u2[state,action] =  Q_update_u2
+				Q_u2 = Q_u2+ ((lr/C_2) * (g_1_2 * (Q_u1 - Q_u2) + \
+								g_2_3*(Q_u3 - Q_u2)))
 
 				#update Q_u3
-				Q_update_u3 = Q_u3[state,action] + ((lr/C_3) * (g_2_3 * (Q_u2[state,action] - Q_u3[state, action])))
-				Q_u3[state,action] = Q_update_u3
+				Q_u3 = Q_u3 + ((lr/C_3) * (g_2_3 * (Q_u2 - Q_u3)))
 
 				state = next_state
 				count += 1
@@ -313,21 +341,21 @@ def main():
 			duration = int(time.time() - start_time)
 
 			totalReturn_val = np.sum(np.array(returnPerEpisode))
-			moving_avg_returns = np.mean(np.array(returnPerEpisode[-100:]))
-			moving_avg_steps = np.mean(np.array(stepsPerEpisode[-20:]))
+			moving_avg_returns = np.mean(np.array(returnPerEpisode[-MIN_EPISODES_TRESHOLD:]))
+			moving_avg_steps = np.mean(np.array(stepsPerEpisode[-MIN_EPISODES_TRESHOLD:]))
 
 			if moving_avg_steps <= MIN_STEPS_TRESHOLD and steps_to_good_policy[epoch] == 0 and (len(stepsPerEpisode) >= MIN_EPISODES_TRESHOLD):
 				steps_to_good_policy[epoch] = count
 
-			header = ["epoch", "steps", "episode", "duration"]
-			data = [epoch, steps_done, episode_count, duration]
+			header = ["epoch", "steps", "cur episode steps", "episode", "duration"]
+			data = [epoch, steps_done, stepsPerEpisode[-1], episode_count, duration]
 
 			header += ["eps", "cur episode return", "returns", "avg returns", "avg steps", "steps to good policy"]
 			data += [eps, returnPerEpisode[-1], totalReturn_val, moving_avg_returns, moving_avg_steps, steps_to_good_policy[epoch]]
 
-			if episode_count % 50 == 0: 
+			if episode_count % 1 == 0: 
 				txt_logger.info(
-						"Epoch {} | S {} | Episode {} | D {} | EPS {:.3f} | R {:.3f} | Total R {:.3f} | Avg R {:.3f} | Avg S {} | Good Policy {}"
+						"Epoch {} | S {} | Epi Steps {} | Episode {} | D {} | EPS {:.3f} | R {:.3f} | Total R {:.3f} | Avg R {:.3f} | Avg S {} | Good Policy {}"
 						.format(*data))
 
 			if episode_count == 0:
