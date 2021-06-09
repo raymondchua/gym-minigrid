@@ -353,7 +353,7 @@ def main():
 			header += ["eps", "cur episode return", "returns", "avg returns", "avg steps", "steps to good policy"]
 			data += [eps, returnPerEpisode[-1], totalReturn_val, moving_avg_returns, moving_avg_steps, steps_to_good_policy[epoch]]
 
-			if episode_count % 1 == 0: 
+			if episode_count % 50 == 0: 
 				txt_logger.info(
 						"Epoch {} | S {} | Epi Steps {} | Episode {} | D {} | EPS {:.3f} | R {:.3f} | Total R {:.3f} | Avg R {:.3f} | Avg S {} | Good Policy {}"
 						.format(*data))
