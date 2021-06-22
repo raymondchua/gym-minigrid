@@ -358,16 +358,15 @@ def main():
 
 				#update SR_u1 using SR-td error
 				sf_error = compute_SF_td_error(state, action, next_state, next_action, SF_u1, w)
-				SF_u1[state,:] = SF_u1[state,:] + ((sf_lr/C_1) * (sf_error + g_1_2 * (SF_u2[state,:] - SF_u1[state,:])))
+				SF_u1[state, action,:] = SF_u1[state, action,:] + ((sf_lr/C_1) * (sf_error + g_1_2 * (SF_u2[state, action,:] - SF_u1[state, action,:])))
 
 
 				# #update SF_u2 using SR-td error
-				SF_u2[state,:] = SF_u2[state,:] + ((sf_lr/C_2) * (g_1_2 * (SF_u1[state, :] - SF_u2[state,:]) + \
-								g_2_3*(SF_u3[state, :] - SF_u2[state, :])))
+				SF_u2 = SF_u2 + ((sf_lr/C_2) * (g_1_2 * (SF_u1 - SF_u2) + g_2_3*(SF_u3 - SF_u2)))
 
 
 				#update SF_u3 using SR-td error
-				SF_u3[state,:] = SF_u3[state,:] + ((sf_lr/C_3) * (g_2_3 * (SF_u2[state, :] - SF_u3[state,:])))
+				SF_u3 = SF_u3 + ((sf_lr/C_3) * (g_2_3 * (SF_u2 - SF_u3)))
 
 				Q_u1_update = np.squeeze(np.dot(SF_u1[state,action,:], w))
 
