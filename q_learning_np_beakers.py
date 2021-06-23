@@ -269,22 +269,7 @@ def main():
 				td_error = compute_td_error(state, next_state, action, reward, Q_u1)
 				td_error_etrace = np.multiply(etrace, td_error)
 
-				# Q_update_u1 = Q_u1[state,action] + ((lr/C_1) * (td_error_etrace + g_1_2 * (Q_u2[state, action] - Q_u1[state,action])))
-				# Q_u1[state, action] = Q_update_u1
-
-				# #update Q_u2
-				# Q_update_u2 = Q_u2[state,action] + ((lr/C_2) * (g_1_2 * (Q_u1[state, action] - Q_u2[state,action]) + \
-				# 				g_2_3*(Q_u3[state, action] - Q_u2[state, action])))
-				# Q_u2[state,action] =  Q_update_u2
-
-				# #update Q_u3
-				# Q_update_u3 = Q_u3[state,action] + ((lr/C_3) * (g_2_3 * (Q_u2[state,action] - Q_u3[state, action])))
-				# Q_u3[state,action] = Q_update_u3
-
-				# Q_values = Q_values + (lr * td_error_etrace)
-
 				Q_u1 = Q_u1 + ((lr/C_1) * (td_error_etrace + g_1_2 * (Q_u2 - Q_u1)))
-				# Q_u1[state, action] = Q_update_u1
 
 				#update Q_u2
 				Q_u2 = Q_u2+ ((lr/C_2) * (g_1_2 * (Q_u1 - Q_u2) + \
