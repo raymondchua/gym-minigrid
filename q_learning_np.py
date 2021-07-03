@@ -12,11 +12,8 @@ import datetime
 import utils
 import sys
 
-grid_size =  10
 num_epochs = 12
 discount = 0.9
-
-max_steps = 20000
 
 EPS_START = 1.0
 EPS_END = 0.05
@@ -38,75 +35,13 @@ def eps_greedy_action(Q_values, state, rng, num_actions, eps_final):
 	else:
 		return eps_threshold, rng.integers(low=0, high=num_actions, size=1)[0]
 
-
-def key_handler(event):
-	print('pressed', event.key)
-
-	if event.key == 'escape':
-		window.close()
-		return
-
-	if event.key == 'backspace':
-		reset()
-		return
-
-	if event.key == 'left':
-		step(env.actions.left)
-		return
-	if event.key == 'right':
-		step(env.actions.right)
-		return
-	if event.key == 'up':
-		step(env.actions.up)
-		return
-
-	# Spacebar
-	if event.key == ' ':
-		step(env.actions.toggle)
-		return
-	if event.key == 'pageup':
-		step(env.actions.pickup)
-		return
-	if event.key == 'pagedown':
-		step(env.actions.drop)
-		return
-
-	if event.key == 'enter':
-		step(env.actions.done)
-		return
-
-def redraw(img):
-	if not args.agent_view:
-		img = env.render('rgb_array', tile_size=args.tile_size)
-
-	window.show_img(img)
-
-def reset():
-	if args.seed != -1:
-		env.seed(args.seed)
-
-	obs = env.reset()
-
-	# if hasattr(env, 'mission'):
-	# 	print('Mission: %s' % env.mission)
-	# 	window.set_caption(env.mission)
-
-	# redraw(obs)
-	return getStateID(obs)
-
-def getStateID(obs):
+def getStateID(obs, grid_size):
 	state_space = np.zeros((grid_size, grid_size))
 	x = obs['x'] 	
 	y = obs['y']
 	state_space[x,y] = 1
 	state_space_vec = state_space.reshape(-1)
 	return np.nonzero(state_space_vec)
-
-def step(action):
-	obs, reward, done, info = env.step(action)
-	obs = getStateID(obs)
-	
-	return obs, reward, done, info
 
 def map_actions(action, env):
 	actions = [
@@ -134,6 +69,21 @@ def main():
 		help="random seed to generate the environment with",
 		default=0
 	)
+
+	parser.add_argument(
+		"--grid_size",
+		type=int,
+		help="size of the grid on each side",
+		default=10
+	)
+
+	parser.add_argument(
+		"--max_steps",
+		type=int,
+		help="max steps per episode",
+		default=20000
+	)
+
 	parser.add_argument(
 		"--eps",
 		type=float,
@@ -221,6 +171,8 @@ def main():
 	num_episodes = args.num_episodes
 	lr = args.lr_Q
 	lam_factor = args.lambda_factor
+	max_steps = args.max_steps
+	grid_size = args.grid_size
 
 
 	env = GridWorldEnv(size=grid_size, goal_pos=(0,0))
@@ -237,7 +189,7 @@ def main():
 	returnPerEpisode = [] 
 	stepsPerEpisode = []
 	steps_done = 0
-	epside_count = 0
+	episode_count = 0
 
 	save_dir_Q = args.save_dir_Q
 
@@ -264,7 +216,7 @@ def main():
 		for episode in range(num_episodes):
 			
 			state = env.reset()
-			state = getStateID(state)
+			state = getStateID(state, grid_size)
 			eps_reward = 0
 
 			etrace = np.zeros((grid_size*grid_size, len(env.actions))) 
@@ -275,8 +227,7 @@ def main():
 				steps_done += 1
 
 				next_state, reward, done, info = env.step(map_actions(action, env))
-				next_state = getStateID(next_state)
-				# next_state, reward, done, info = step(map_actions(action))
+				next_state = getStateID(next_state, grid_size)
 				
 				eps_reward += reward
 
@@ -302,35 +253,36 @@ def main():
 			duration = int(time.time() - start_time)
 
 			totalReturn_val = np.sum(np.array(returnPerEpisode))
-			moving_avg_returns = np.mean(np.array(returnPerEpisode[-100:]))
-			moving_avg_steps = np.mean(np.array(stepsPerEpisode[-20:]))
+			moving_avg_returns = np.mean(np.array(returnPerEpisode[-MIN_EPISODES_TRESHOLD:]))
+			moving_avg_steps = np.mean(np.array(stepsPerEpisode[-MIN_EPISODES_TRESHOLD:]))
+
+			if moving_avg_steps <= MIN_STEPS_TRESHOLD and steps_to_good_policy[epoch] == 0 and (len(stepsPerEpisode) >= MIN_EPISODES_TRESHOLD):
+				steps_to_good_policy[epoch] = count
 
 
-			header = ["epoch", "steps", "episode", "duration"]
-			data = [epoch, steps_done, epside_count, duration]
-
+			header = ["epoch", "steps", "cur episode steps", "episode", "duration"]
+			data = [epoch, steps_done, stepsPerEpisode[-1], episode_count, duration]
 
 			header += ["eps", "cur episode return", "returns", "avg returns", "avg steps", "steps to good policy"]
 			data += [eps, returnPerEpisode[-1], totalReturn_val, moving_avg_returns, moving_avg_steps, steps_to_good_policy[epoch]]
 
-			if epside_count % 200 == 0: 
+			if episode_count % 50 == 0: 
 				txt_logger.info(
-						"Epoch {} | S {} | Episode {} | D {} | EPS {:.3f} | R {:.3f} | Total R {:.3f} | Avg R {:.3f} | Avg S {} | Good Policy {}"
+						"Epoch {} | S {} | Epi Steps {} | Episode {} | D {} | EPS {:.3f} | R {:.3f} | Total R {:.3f} | Avg R {:.3f} | Avg S {} | Good Policy {}"
 						.format(*data))
 
-			if epside_count == 0:
+			if episode_count == 0:
 				csv_logger.writerow(header)
 			csv_logger.writerow(data)
 			csv_file.flush()
 
-			if epside_count % 10 == 0 and args.save_np_files: 
-				filename = save_dir_Q + 'Q_etraceReplace_'+str(epside_count)+'.npy'
-				np.save(filename, Q_values)
+			# if episode_count % 10 == 0 and args.save_np_files: 
+			# 	filename = save_dir_Q + 'Q_etraceReplace_'+str(episode_count)+'.npy'
+			# 	np.save(filename, Q_values)
 				
-			epside_count += 1
+			episode_count += 1
 
-			if moving_avg_steps <= MIN_STEPS_TRESHOLD and steps_to_good_policy[epoch] == 0 and (len(stepsPerEpisode) >= MIN_EPISODES_TRESHOLD):
-				steps_to_good_policy[epoch] = count
+
 
 
 

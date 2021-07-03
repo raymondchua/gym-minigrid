@@ -14,11 +14,8 @@ import datetime
 import utils
 import sys
 
-grid_size =  10
 num_epochs = 12
 discount = 0.9
-
-max_steps = 20000
 
 EPS_START = 1.0
 EPS_END = 0.05
@@ -55,7 +52,7 @@ def reset():
 	# redraw(obs)
 	return getStateID(obs)
 
-def getStateID(obs):
+def getStateID(obs, grid_size):
 	state_space = np.zeros((grid_size, grid_size))
 	x = obs['x'] 	
 	y = obs['y']
@@ -63,11 +60,6 @@ def getStateID(obs):
 	state_space_vec = state_space.reshape(-1)
 	return np.nonzero(state_space_vec)
 
-def step(action):
-	obs, reward, done, info = env.step(action)
-	obs = getStateID(obs)
-	
-	return obs, reward, done, info
 
 def map_actions(action, env):
 	actions = [
@@ -94,6 +86,20 @@ def main():
 		type=int,
 		help="random seed to generate the environment with",
 		default=0
+	)
+
+	parser.add_argument(
+		"--grid_size",
+		type=int,
+		help="size of the grid on each side",
+		default=10
+	)
+
+	parser.add_argument(
+		"--max_steps",
+		type=int,
+		help="max steps per episode",
+		default=20000
 	)
 	parser.add_argument(
 		"--eps",
@@ -192,7 +198,8 @@ def main():
 	num_episodes = args.num_episodes
 	lr = args.lr_Q
 	lam_factor = args.lambda_factor
-
+	max_steps = args.max_steps
+	grid_size = args.grid_size
 
 
 	env = GridWorldEnv(size=grid_size, goal_pos=(0,0))
@@ -247,7 +254,7 @@ def main():
 		for episode in range(num_episodes):
 			
 			state = env.reset()
-			state = getStateID(state)
+			state = getStateID(state, grid_size)
 			eps_reward = 0
 
 			etrace = np.zeros((grid_size*grid_size, len(env.actions))) 
@@ -258,7 +265,7 @@ def main():
 				steps_done += 1
 
 				next_state, reward, done, info = env.step(map_actions(action, env))
-				next_state = getStateID(next_state)
+				next_state = getStateID(next_state, grid_size)
 				
 				eps_reward += reward
 

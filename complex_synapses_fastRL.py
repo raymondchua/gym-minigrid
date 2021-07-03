@@ -257,17 +257,17 @@ def main():
 	status = {"num_steps": 0, "update": 0, "num_episodes":0}
 	txt_logger.info("Training status loaded\n")
 
-	Q_u1 = np.zeros((grid_size*grid_size, len(env.actions)))
-	Q_u2 = np.zeros((grid_size*grid_size, len(env.actions)))
-	Q_u3 = np.zeros((grid_size*grid_size, len(env.actions)))
+	Q_u1 = np.zeros((grid_size*grid_size, len(env1.actions)))
+	Q_u2 = np.zeros((grid_size*grid_size, len(env1.actions)))
+	Q_u3 = np.zeros((grid_size*grid_size, len(env1.actions)))
 
 	SR_u1 = np.zeros((grid_size*grid_size, grid_size*grid_size))
 	SR_u2 = np.zeros((grid_size*grid_size, grid_size*grid_size))
 	SR_u3 = np.zeros((grid_size*grid_size, grid_size*grid_size))
 
-	SF_u1 = np.zeros((grid_size*grid_size, len(env.actions), grid_size*grid_size))
-	SF_u2 = np.zeros((grid_size*grid_size, len(env.actions), grid_size*grid_size))
-	SF_u3 = np.zeros((grid_size*grid_size, len(env.actions), grid_size*grid_size))
+	SF_u1 = np.zeros((grid_size*grid_size, len(env1.actions), grid_size*grid_size))
+	SF_u2 = np.zeros((grid_size*grid_size, len(env1.actions), grid_size*grid_size))
+	SF_u3 = np.zeros((grid_size*grid_size, len(env1.actions), grid_size*grid_size))
 
 	g_1_2 = args.init_tube #original was 0.00001
 	g_2_3 = g_1_2 / 2
