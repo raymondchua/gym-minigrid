@@ -13,8 +13,6 @@ import sys
 from gridworld_np import GridWorldEnv
 
 
-grid_size = 10
-
 max_steps = 20000
 
 discount = 0.9
@@ -110,6 +108,13 @@ def main():
 			type=int,
 			help="random seed to generate the environment with",
 			default=0
+	)
+
+	parser.add_argument(
+			"--grid_size",
+			type=int,
+			help="size of the grid on each side",
+			default=10
 	)
 
 	parser.add_argument(
@@ -220,6 +225,7 @@ def main():
 
 	lam_factor = args.lambda_factor
 	num_epochs = args.num_epochs
+	grid_size = args.grid_size
 
 	# Load loggers and Tensorboard writer
 
@@ -240,7 +246,7 @@ def main():
 	SR_path = utils.get_SR_dir(model_dir)
 	Q_path = utils.get_Q_dir(model_dir)
 
-	env = GridWorldEnv(size=grid_size, goal_pos=(0,0))
+	env = None
 	txt_logger.info("Environments loaded\n")
 
 	env1 = GridWorldEnv(size=grid_size, goal_pos=(0,0))
